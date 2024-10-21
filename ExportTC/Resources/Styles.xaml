@@ -1,0 +1,56 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style x:Key="TextBox" TargetType="TextBox">
+        <Setter Property="Background" Value="WhiteSmoke"/>
+        <!-- Цвет фона -->
+        <Setter Property="Foreground" Value="Black"/>
+        <!-- Цвет текста -->
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontFamily" Value="Arial"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="BorderBrush" Value="DarkGray"/>
+        <!-- Цвет границы -->
+        <Setter Property="BorderThickness" Value="2"/>
+        <!-- Толщина границы -->
+
+        <!-- Устанавливаем шаблон управления для скругления углов -->
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border Background="{TemplateBinding Background}" 
+                        BorderBrush="{TemplateBinding BorderBrush}" 
+                        BorderThickness="{TemplateBinding BorderThickness}" 
+                        CornerRadius="5">
+                        <!-- Скругление углов -->
+                        <ScrollViewer x:Name="PART_ContentHost"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CustomCheckBoxStyle" TargetType="CheckBox">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Width="20" Height="20">
+                        <!-- Область для галочки -->
+                        <Border Width="20" Height="20" Background="Transparent" 
+                            BorderBrush="Gray" BorderThickness="2">
+                            <Path x:Name="CheckMark" Data="M 0,0 L 10,19 L 20,-10" 
+                              Stroke="Green" StrokeThickness="2" Visibility="Collapsed" />
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

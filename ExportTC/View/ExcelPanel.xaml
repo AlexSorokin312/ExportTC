@@ -1,0 +1,166 @@
+﻿<UserControl x:Class="ExportTC.View.ExcelPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ExportTC.View"
+             xmlns:vm="clr-namespace:ExportTC.ViewModel"
+             xmlns:custom="clr-namespace:ExportTC.View.Custom"
+             mc:Ignorable="d" 
+             d:DesignHeight="500" d:DesignWidth="800">
+    <UserControl.DataContext>
+        <vm:ExcelViewModel />
+    </UserControl.DataContext>
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.3*"/>
+            <ColumnDefinition Width="0.2*"/>
+            <ColumnDefinition Width="0.2*"/>
+            <ColumnDefinition Width="0.5*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок -->
+        <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="4" 
+               Style="{StaticResource Label1}" 
+               Margin="5,0,0,15" Padding="0" 
+               VerticalAlignment="Bottom">
+            Настройка исходных данных из Excel
+        </Label>
+
+        <!-- Группа для строк ввода -->
+        <GroupBox Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" 
+          Header="Настройки строк:" 
+          Margin="0,5,0,0">
+            <Grid Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <!-- Для заполнения оставшегося пространства -->
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- ID изделия -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Наименование -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Стартовая строка -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Общее количество строк -->
+                </Grid.RowDefinitions>
+
+                <!-- Номер столбца с ID изделия -->
+                <Label Grid.Row="0" 
+               Style="{StaticResource DescriptionLabel}" 
+               VerticalAlignment="Center">
+                    Ячейка с ID изделия:
+                </Label>
+                <TextBox Grid.Row="0" Grid.Column="2" 
+                 Style="{StaticResource TextBox}" 
+                 HorizontalAlignment="Right"
+                 Width="50" Height="30" 
+                 Margin="45,1"
+                Text="{Binding ProductIDCell, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <!-- Номер столбца с наименованием изделия -->
+                <Label Grid.Row="1" 
+               Style="{StaticResource DescriptionLabel}" 
+               VerticalAlignment="Center">
+                    Ячейка с наименованием изделия:
+                </Label>
+                <TextBox Grid.Row="1" Grid.Column="2" 
+                 Style="{StaticResource TextBox}" 
+                 HorizontalAlignment="Right"
+                 Width="50" Height="30" 
+                 Margin="45,1"
+                 Text="{Binding ProductNameCell, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <!-- Номер стартовой строки -->
+                <Label Grid.Row="2" 
+               Style="{StaticResource DescriptionLabel}" 
+               VerticalAlignment="Center">
+                    Номер стартовой строки:
+                </Label>
+                <TextBox Grid.Row="2" Grid.Column="2" 
+                 Style="{StaticResource TextBox}" 
+                 HorizontalAlignment="Right"
+                 Width="50" Height="30" 
+                 Margin="45,1"
+                 Text="{Binding HeaderRowNumber, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <!-- Общее количество строк -->
+                <Label Grid.Row="3" 
+               Style="{StaticResource DescriptionLabel}" 
+               VerticalAlignment="Center">
+                    Номер последней строки (опционально):
+                </Label>
+                <TextBox Grid.Row="3" Grid.Column="2"
+                 Style="{StaticResource TextBox}" 
+                 HorizontalAlignment="Right"
+                 Width="50" Height="30" 
+                 Margin="45,1"
+                 Text="{Binding EndRow, UpdateSourceTrigger=PropertyChanged}"/>
+            </Grid>
+        </GroupBox>
+
+
+        <!-- Custom Excel Rows -->
+        <GroupBox Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="4" 
+                  Header="Столбцы, содержащие данные:" 
+                  Margin="0,5,0,0">
+            <StackPanel>
+                <custom:ExcelRow Content="Позиция (Pos)" 
+                                 DirectoryPath="{Binding PositionColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                 IsChecked="{Binding IsCheckedPosition, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                 Margin="0,0,0,0" Padding="0"/>
+
+                <custom:ExcelRow Content="Обозначение (ID)" 
+                                 DirectoryPath="{Binding DesignationColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                 IsChecked="{Binding IsCheckedDesignation, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                 Margin="0,0,0,0" Padding="0"/>
+
+                <custom:ExcelRow Content="Количество (TQTY)" 
+                                 DirectoryPath="{Binding QuantityColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                 IsChecked="{Binding IsCheckedQuantity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                 Margin="0,0,0,0" Padding="0"/>
+
+                <custom:ExcelRow Content="Наименование (Description)" 
+                                 DirectoryPath="{Binding DescriptionColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                 IsChecked="{Binding IsCheckedDescription, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                 Margin="0,0,0,0" Padding="0"/>
+
+                <custom:ExcelRow Content="Тип изделия (MakeBuy)" 
+                                 DirectoryPath="{Binding MakeBuyColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                 IsChecked="{Binding IsCheckedMakeBuy, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                 Margin="0,0,0,0" Padding="0"/>
+
+                <custom:ExcelRow Content="Material (Material)" 
+                                 DirectoryPath="{Binding MaterialColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                 IsChecked="{Binding IsCheckedMaterial, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                 Margin="0,0,0,0" Padding="0"/>
+
+                <!-- Новый элемент для RevisionColumn -->
+                <custom:ExcelRow Content="Ревизия (Revision)" 
+                         DirectoryPath="{Binding RevisionColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                         IsChecked="{Binding IsCheckedRevision, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                         Margin="0,0,0,0" Padding="0"/>
+            </StackPanel>
+        </GroupBox>
+
+    </Grid>
+</UserControl>
