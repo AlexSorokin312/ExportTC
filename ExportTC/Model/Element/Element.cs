@@ -9,9 +9,11 @@ namespace HenconExport.Model.Elemnts
         public string? Quantity { get; set; }
         public string? Name { get; set; }
         public string? MakeOrBuy { get; set; }
-        public string? ImageSource { get; set; }
+        public string? ProductStatus { get; set; }
         public string? Revision { get; set; }
         public string? Type { get; set; }
+        public string? FileName { get; set; }
+        public string? Drawing { get; set; }
         public Element Parent { get; set; }
         public List<Element>? Children { get; set; } = new List<Element>();
 

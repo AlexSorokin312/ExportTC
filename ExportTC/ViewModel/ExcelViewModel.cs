@@ -65,7 +65,6 @@ namespace ExportTC.ViewModel
         {
             _initialData = App.ServiceProvider.GetService<InitialData>();
 
-            // Инициализация свойств ViewModel значениями из InitialData
             HeaderRowNumber = _initialData.HeaderRow;
             ProductIDCell = _initialData.ProductIDCell;
             ProductNameCell = _initialData.ProductNameCell;
@@ -88,7 +87,6 @@ namespace ExportTC.ViewModel
             IsCheckedRevision = _initialData.IsCheckedRevision;
         }
 
-        // Пример автообновления InitialData при изменении свойств
         partial void OnHeaderRowNumberChanged(int? oldValue, int? newValue)
         {
             _initialData.HeaderRow = newValue ?? 0; 

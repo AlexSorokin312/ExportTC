@@ -1,9 +1,9 @@
-﻿using HenconExport.Model.HTMHandler;
+﻿using ExportTC.Interfaces;
 
 namespace ExportTC.Model.Factories
 {
     public interface IHtmlReaderFactory
     {
-        IHtmlHadnler Create(string filePath);
+        IHtmlReader Create(string filePath);
     }
 }

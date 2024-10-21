@@ -3,9 +3,6 @@ using System.Windows.Controls;
 
 namespace ExportTC.View.Custom
 {
-    /// <summary>
-    /// Interaction logic for ExcelRow.xaml
-    /// </summary>
     public partial class ExcelRow : UserControl
     {
         public ExcelRow()

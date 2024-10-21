@@ -12,7 +12,7 @@ namespace ExportTC.Model
         #endregion
 
         #region Excel
-        public int SheetNubmer { get; set; }
+        public int SheetNumber { get; set; }
         public string? ProductIDCell { get; set; }
         public string? ProductNameCell { get; set; }
         public int HeaderRow { get; set; }
@@ -39,7 +39,7 @@ namespace ExportTC.Model
 
         public InitialData()
         {
-            SheetNubmer = DefaultReadSettings.LIST_NUMBER_DEFAULT;
+            SheetNumber = DefaultReadSettings.LIST_NUMBER_DEFAULT;
             HeaderRow = DefaultReadSettings.HEADER_ROW_NUMBER;
             ProductIDCell = DefaultReadSettings.DESIGNAION_ID_DEFAULT;
             ProductNameCell = DefaultReadSettings.PRODUCT_NAME_DEFAULT;

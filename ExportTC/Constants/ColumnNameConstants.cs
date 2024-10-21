@@ -1,4 +1,4 @@
-﻿namespace ExportTC.Constants
+﻿namespace ExportTC.Constants.ColumnNameConstants
 {
     public class ColumnNameConstants
     {

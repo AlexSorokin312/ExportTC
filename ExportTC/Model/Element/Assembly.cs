@@ -27,15 +27,12 @@ public class Assembly
 
     private void SortChildren(Element parent)
     {
-        // Сортируем детей текущего элемента по Designation
         parent.Children = parent.Children?.OrderBy(e =>
         {
-            // Пробуем разобрать Designation как число для корректной сортировки
             int result;
             return int.TryParse(e.Designation, out result) ? result : int.MaxValue;
         }).ToList();
 
-        // Рекурсивно сортируем детей каждого элемента
         if (parent.Children != null)
         {
             foreach (var child in parent.Children)

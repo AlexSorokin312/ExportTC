@@ -1,6 +1,6 @@
 ﻿namespace ExportTC.Constants
 {
-    public static class Constants
+    public static class CommonConstants
     {
         public const string DirectoryDialogDescription = "Выберите папку";
         public const string ExcelFileDialogFilter = "Excel Files (*.xls;*.xlsx)|*.xls;*.xlsx|All Files (*.*)|*.*";
@@ -11,8 +11,9 @@
         public static Dictionary<string, string> BomMakePictures;
 
         public static List<string> ElementTypePictures;
+        public static List<string> Statuses;
 
-        static Constants()
+        static CommonConstants()
         {
             Replacments = new Dictionary<string, string>
             {
@@ -41,6 +42,16 @@
                 "ic_generic.png",
                 "ic_dwg.png"
             };
+
+            Statuses = new List<string>
+                {
+                    "checkedin.png",
+                    "checkedout.png",
+                    "state.png",
+                    "frozen.png",
+                    "released.png",
+                    "blank.png"
+                };
         }
 
         public static string GetReplacment(string name)
@@ -70,6 +81,16 @@
                     return picture;
             }
             return string.Empty;
+        }
+
+        public static string GetStatus(string innerHtml)
+        {
+            foreach (var status in Statuses)
+            {
+                if (innerHtml.Contains(status))
+                    return status;
+            }
+            return string.Empty; 
         }
     }
 }

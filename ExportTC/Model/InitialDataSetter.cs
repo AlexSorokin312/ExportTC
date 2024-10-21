@@ -1,4 +1,5 @@
 ﻿using ExportTC.Constants;
+using ExportTC.Constants.ColumnNameConstants;
 using ExportTC.Model.Factories;
 using HenconExport;
 
@@ -51,7 +52,7 @@ namespace ExportTC.Model
 
         private int GetLastUsedRow()
         {
-            var lastRow = _excelReader.GetLastUsedRow(_initialData.SheetNubmer,
+            var lastRow = _excelReader.GetLastUsedRow(_initialData.SheetNumber,
                                                       _initialData.DesignationColumn,
                                                       _initialData.StartRow);
             return lastRow;

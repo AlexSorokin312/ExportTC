@@ -1,5 +1,6 @@
-﻿using HenconExport;
-using HenconExport.Model.HTMHandler;
+﻿using ExportTC.Interfaces;
+using ExportTC.Model.ElementParcers;
+using HenconExport;
 
 namespace ExportTC.Model.Factories
 {
@@ -16,11 +17,11 @@ namespace ExportTC.Model.Factories
 
     public class HtmReaderFactory : IHtmlReaderFactory
     {
-        public IHtmlHadnler Create(string filePath)
+        public IHtmlReader Create(string filePath)
         {
             if (filePath == null)
                 return null;
-            var reader = new HtmlHandler(filePath);
+            var reader = new HtmlReader();
             return reader;
         }
     }
