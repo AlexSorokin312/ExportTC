@@ -2,6 +2,7 @@
 using ExportTC.ViewModel;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
+using System.Windows.Media.Imaging;
 
 namespace ExportTC
 {
@@ -13,6 +14,7 @@ namespace ExportTC
         public MainWindow()
         {
             InitializeComponent();
+            this.Icon = new BitmapImage(new Uri("pack://application:,,,/Resources/logo.ico"));
             _pathPanel = App.ServiceProvider.GetService<PathPanel>();
             _excelPanel = App.ServiceProvider.GetService<ExcelPanel>();
         }

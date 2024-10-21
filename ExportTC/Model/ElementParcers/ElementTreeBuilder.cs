@@ -22,7 +22,8 @@ namespace ExportTC.Model.ElementParcers
                     Children = new List<Element>() 
                 };
 
-                elements.Add(newElement);
+                if (elements.Count > 0) //Чтобы корневой элемент не добавлялся 2 раза
+                    elements.Add(newElement);
 
                 while (stack.Count > indentLevel)
                 {
@@ -39,11 +40,8 @@ namespace ExportTC.Model.ElementParcers
                 {
                     elements.Add(newElement);
                 }
-
-
                 stack.Push(newElement);
             }
-
             return elements; 
         }
 

@@ -26,19 +26,22 @@ namespace ExportTC.Model.ElementParcers
 
                 var designation = ExtractDesignation(cols[0].InnerHtml);
 
-                // Найти элемент в treeElements с совпадающим Designation
-                var elementToUpdate = treeElements.FirstOrDefault(e => e.Designation == designation);
-                if (elementToUpdate != null)
+                var elementsToUpdate = treeElements.Where(e => e.Designation == designation).ToList();
+
+                foreach (var elementToUpdate in elementsToUpdate)
                 {
-                    // Обновить данные существующего элемента
-                    elementToUpdate.Quantity = cols[1].InnerText;
-                    elementToUpdate.Name = cols[2].InnerText.Clean();
-                    elementToUpdate.MakeOrBuy = ExtractMakeOrBuyFromColumn(cols[3].InnerHtml);
-                    elementToUpdate.Revision = cols[4].InnerText.Clean();
-                    elementToUpdate.FileName = ExtractHrefValueFromColumn(cols[0].InnerHtml);
-                    elementToUpdate.ProductStatus = ExtractStatusFromColumn(cols[0].InnerHtml);
-                    elementToUpdate.Type = ExtractImageTypeFromColumn(cols[0].InnerHtml);
-                    elementToUpdate.Drawing = ExtractDrawingImageTypeFromColumn(cols[0].InnerHtml);
+                    if (elementToUpdate != null)
+                    {
+                        elementToUpdate.Quantity = cols[1].InnerText;
+                        elementToUpdate.Name = cols[2].InnerText.Clean();
+                        elementToUpdate.MakeOrBuy = ExtractMakeOrBuyFromColumn(cols[3].InnerHtml);
+                        elementToUpdate.Revision = cols[4].InnerText.Clean();
+                        elementToUpdate.FileName = ExtractHrefValueFromColumn(cols[0].InnerHtml);
+                        elementToUpdate.ProductStatus = ExtractStatusFromColumn(cols[0].InnerHtml);
+                        elementToUpdate.Type = ExtractImageTypeFromColumn(cols[0].InnerHtml);
+                        elementToUpdate.Drawing = ExtractDrawingImageTypeFromColumn(cols[0].InnerHtml);
+                        elementToUpdate.Revision = cols[4].InnerText.Clean();
+                    }
                 }
             }
         }

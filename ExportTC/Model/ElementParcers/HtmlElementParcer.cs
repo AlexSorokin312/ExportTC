@@ -22,13 +22,6 @@ namespace ExportTC.Model.ElementParcers
             return allElements;
         }
 
-        private void UpdateTreeWithData(List<Element> tree, List<Element> allElements)
-        {
-            foreach (var element in tree)
-            {
-                UpdateElementData(element, allElements);
-            }
-        }
 
         private void UpdateElementData(Element treeElement, List<Element> allElements)
         {

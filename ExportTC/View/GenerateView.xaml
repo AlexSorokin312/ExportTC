@@ -9,7 +9,9 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <converter:TypeToImageConverter x:Key="TypeToImageConverter"/>
+        <converter:ProductStatusToImageConverter x:Key="ProductStatusToImageConverter"/>
     </UserControl.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.4*"/>
@@ -19,10 +21,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="0.9*"/>
             <RowDefinition Height="0.08*"/>
-
-
         </Grid.RowDefinitions>
+
         <Button Content="Старт" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right" Height="30" Margin="0,0,15,0" Command="{Binding BrowseDirectoryCommand}" Style="{StaticResource StartButtonStyle}" Width="150"/>
+
         <TreeView Grid.Row="0" ItemsSource="{Binding RootElements}" Grid.ColumnSpan="2">
             <!-- Применяем стиль через ItemContainerStyle -->
             <TreeView.ItemContainerStyle>
@@ -51,7 +53,11 @@
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="{Binding Type, Converter={StaticResource TypeToImageConverter}}" Width="16" Height="16" Margin="5"/>
+                        <Image Source="{Binding ProductStatus, Converter={StaticResource ProductStatusToImageConverter}}" Width="16" Height="16" Margin="5"/>
                         <TextBlock Text="{Binding Designation}" Margin="5,0,0,0"/>
+                        <TextBlock Text="{Binding Quantity}" Margin="20,0,0,0" Foreground="Blue"/>
+                        <TextBlock Text="{Binding MakeOrBuy}" Margin="20,0,0,0" Foreground="Green"/>
+                        <TextBlock Text="{Binding Revision}" Margin="20,0,0,0" Foreground="Purple"/>
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>

@@ -1,4 +1,6 @@
-﻿namespace ExportTC.Constants
+﻿using System.Windows.Input;
+
+namespace ExportTC.Constants
 {
     public static class CommonConstants
     {
@@ -10,8 +12,8 @@
 
         public static Dictionary<string, string> BomMakePictures;
 
-        public static List<string> ElementTypePictures;
-        public static List<string> Statuses;
+        public static Dictionary<string, string> ElementTypePictures;
+        public static Dictionary<string, string> Statuses;
 
         static CommonConstants()
         {
@@ -25,32 +27,33 @@
 
             BomMakePictures = new Dictionary<string, string>
             {
-                { "Make", "bom_make.gif" },
-                { "bom_make.gif", "bom_make.gif" },
-                { "bom_buy.gif", "bom_buy.gif" },
-                { "bom_nobom.gif", "bom_nobom.gif" },
+                { "bom_make.gif", "Make" },
+                { "bom_buy.gif", "Buy" },
+                { "bom_nobom.gif", string.Empty },
             };
 
-            ElementTypePictures = new List<string>
+            ElementTypePictures = new Dictionary<string, string>
             {
-                "ic_sldasm.png",
-                "ic_pdf.png",
-                "ic_sldprt.png",
-                "ic_doc.png",
-                "ic_gif.png",
-                "ic_zip.png",
-                "ic_generic.png",
-                "ic_dwg.png"
+                { "ic_sldasm.png", ElementConstants.ASSEMBLY},
+                { "ic_pdf.png", ElementConstants.PDF },
+                { "ic_sldprt.png", ElementConstants.DETAIL},
+                { "ic_doc.png", ElementConstants.DOC },
+                { "ic_gif.png", ElementConstants.GIF },
+                { "ic_zip.png", ElementConstants.ZIP },
+                { "ic_generic.png", ElementConstants.GENERIC },
+                { "ic_dwg.png", ElementConstants.DWG }
             };
 
-            Statuses = new List<string>
+            Statuses = new Dictionary<string, string>
                 {
-                    "checkedin.png",
-                    "checkedout.png",
-                    "state.png",
-                    "frozen.png",
-                    "released.png",
-                    "blank.png"
+                    {"checkedin.png", ElementConstants.CHECKEDIN},
+                    {"checkedout.png", ElementConstants.CHECKEDOUT},
+                    {"state.png", ElementConstants.STATE},
+                    {"frozen.png", ElementConstants.FROZEN},
+                    {"released.png", ElementConstants.RELEASED},
+                    {"blank.png", ElementConstants.BLANK},
+                    {"new.png", ElementConstants.NEW},
+                    {"new.gif", ElementConstants.NEW},
                 };
         }
 
@@ -77,8 +80,8 @@
         {
             foreach (var picture in ElementTypePictures)
             {
-                if (content.Contains(picture))
-                    return picture;
+                if (content.Contains(picture.Key))
+                    return picture.Value;
             }
             return string.Empty;
         }
@@ -87,8 +90,8 @@
         {
             foreach (var status in Statuses)
             {
-                if (innerHtml.Contains(status))
-                    return status;
+                if (innerHtml.Contains(status.Key))
+                    return status.Value;
             }
             return string.Empty; 
         }

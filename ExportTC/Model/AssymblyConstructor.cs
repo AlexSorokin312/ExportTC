@@ -1,5 +1,4 @@
-﻿using ExportTC.Constants;
-using ExportTC.Model.ElementParcers;
+﻿using ExportTC.Model.ElementParcers;
 using ExportTC.Model.Factories;
 using HenconExport.Model.Elemnts;
 using System.IO;
@@ -29,8 +28,8 @@ namespace ExportTC.Model
             var excelElements = GetDataFromExcel(initialData);
             var htmlElements = GetDataFromHtml(initialData);
             MergeExcelElementsWithHtmlData(excelElements, htmlElements);
-            DefineElementTypes(excelElements);
-            var assembly = new Assembly(excelElements);
+            MatchQuantity(htmlElements, excelElements);
+            var assembly = new Assembly(htmlElements);
             assembly.Sort();
             return assembly;
         }
@@ -92,26 +91,17 @@ namespace ExportTC.Model
             };
         }
 
-        private void DefineElementTypes(List<Element> elements)
+        private void MatchQuantity(List<Element> htmlElements, List<Element> excelElements)
         {
-            foreach (var element in elements)
+            foreach (var element in htmlElements)
             {
-                var elementType = element.Type ?? string.Empty;
-                if (elementType.Contains("ic_pdf.png", StringComparison.OrdinalIgnoreCase))
-                {
-                    element.Type = ElementConstants.PDF;
+                if (element.Parent == null)
                     continue;
-                }
-
-                if (element.Children == null || element.Children.Count == 0)
-                {
-                    element.Type = ElementConstants.DETAIL;
-                }
-                else if (element.Children.Count > 0)
-                {
-                    element.Type = ElementConstants.ASSEMBLY;
-                }
-
+                var excelElement = excelElements.FirstOrDefault(x=>x.Designation == element.Designation && x.Parent.Designation == element.Parent.Designation);
+                if (excelElement != null)
+                    element.Quantity = excelElement.Quantity;
+                else
+                    element.Quantity = "1";
             }
         }
     }

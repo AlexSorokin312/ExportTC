@@ -9,9 +9,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\blank.png" />
+    <None Remove="Resources\checkedin.png" />
+    <None Remove="Resources\checkedout.png" />
+    <None Remove="Resources\frozen.png" />
     <None Remove="Resources\ic_pdf.png" />
     <None Remove="Resources\ic_sldasm.png" />
     <None Remove="Resources\ic_sw_cool_prt.png" />
+    <None Remove="Resources\logo.ico" />
+    <None Remove="Resources\new.png" />
+    <None Remove="Resources\released.png" />
+    <None Remove="Resources\state.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,9 +37,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\blank.png" />
+    <Resource Include="Resources\checkedin.png" />
+    <Resource Include="Resources\checkedout.png" />
+    <Resource Include="Resources\frozen.png" />
     <Resource Include="Resources\ic_pdf.png" />
     <Resource Include="Resources\ic_sldasm.png" />
     <Resource Include="Resources\ic_sw_cool_prt.png" />
+    <Resource Include="Resources\logo.ico" />
+    <Resource Include="Resources\new.png" />
+    <Resource Include="Resources\released.png" />
+    <Resource Include="Resources\state.png" />
   </ItemGroup>
 
 </Project>
