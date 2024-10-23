@@ -108,6 +108,7 @@ namespace ExportTC.ViewModel
                         row++;
                         continue;
                     }
+
                     if (fileName.Contains(".pdf") || fileName.Contains(".PDF"))
                         excelWriter.WriteCell(worksheet, row, 24, element.FileName);
                     if (fileName.Contains(".zip") || fileName.Contains(".ZIP"))
@@ -116,9 +117,43 @@ namespace ExportTC.ViewModel
                         excelWriter.WriteCell(worksheet, row, 26, element.FileName);
                     if (fileName.Contains("dwg") || fileName.Contains("DWG"))
                         excelWriter.WriteCell(worksheet, row, 27, element.FileName);
+                    if (fileName.Contains("doc") || fileName.Contains("DOC"))
+                    {
+                        if (fileName.Contains("docx") || fileName.Contains("DOCX"))
+                            excelWriter.WriteCell(worksheet, row, 20, element.FileName);
+                        else
+                        {
+                            excelWriter.WriteCell(worksheet, row, 19, element.FileName);
+                        }
+                    }
+                       
+
                     if (fileName.Contains("jpg") || fileName.Contains("JPG"))
-                        excelWriter.WriteCell(worksheet, row, 28, element.FileName);
+                        excelWriter.WriteCell(worksheet, row, 29, element.FileName);
+
+                    string searchDirectory = @"C:\Users\ASorokin\Desktop\447033164\HENKON_164";
+
+                    if (!string.IsNullOrEmpty(element.Designation))
+                    {
+                        // Получаем все файлы с расширением .SLDDRW
+                        var foundFiles = Directory.EnumerateFiles(searchDirectory, "*.SLDDRW", SearchOption.AllDirectories)
+                                                  .Where(file => Path.GetFileNameWithoutExtension(file)
+                                                                  .Contains(element.Designation, StringComparison.OrdinalIgnoreCase));
+
+                        if (foundFiles.Any())
+                        {
+                            // Если найден хотя бы один файл, записываем его в нужную ячейку
+                            excelWriter.WriteCell(worksheet, row, 28, Path.GetFileName(foundFiles.First()));
+                        }
+                        else
+                        {
+             
+                        }
+                    }
+
                     row++;
+
+      
                 }
 
                 excelWriter.Save();
