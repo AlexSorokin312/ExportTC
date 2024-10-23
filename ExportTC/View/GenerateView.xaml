@@ -15,17 +15,16 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.4*"/>
-            <ColumnDefinition Width="0.9*"/>
+            <ColumnDefinition Width="0.5*"/>
+            <ColumnDefinition Width="0.4*"/>
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="0.9*"/>
             <RowDefinition Height="0.08*"/>
         </Grid.RowDefinitions>
-
-        <Button Content="Старт" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right" Height="30" Margin="0,0,15,0" Command="{Binding BrowseDirectoryCommand}" Style="{StaticResource StartButtonStyle}" Width="150"/>
-
-        <TreeView Grid.Row="0" ItemsSource="{Binding RootElements}" Grid.ColumnSpan="2">
+        
+        <TreeView Grid.Row="0" ItemsSource="{Binding RootElements}" Grid.ColumnSpan="3">
             <!-- Применяем стиль через ItemContainerStyle -->
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem">
@@ -62,5 +61,20 @@
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
+
+        <ComboBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Width="250" Height="30"
+          ItemsSource="{Binding ComboBoxItems}" 
+          SelectedItem="{Binding SelectedComboBoxItem}"
+          Style="{StaticResource DarkComboBoxStyle}"
+>
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <Button Content="Старт" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right" Height="30" Margin="0,0,15,0" Command="{Binding BrowseDirectoryCommand}" Style="{StaticResource StartButtonStyle}" Width="150"/>
+
     </Grid>
 </UserControl>

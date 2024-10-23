@@ -27,13 +27,13 @@ namespace ExportTC.Model
         public string? MaterialColumn { get; set; }
         public string? RevisionColumn { get; set; }
 
-        public bool? IsCheckedPosition { get; set; }
-        public bool? IsCheckedDesignation { get; set; }
-        public bool? IsCheckedQuantity { get; set; }
-        public bool? IsCheckedDescription { get; set; }
-        public bool? IsCheckedMakeBuy { get; set; }
-        public bool? IsCheckedMaterial { get; set; }
-        public bool? IsCheckedRevision { get; set; }
+        public bool IsCheckedPosition { get; set; }
+        public bool IsCheckedDesignation { get; set; }
+        public bool IsCheckedQuantity { get; set; }
+        public bool IsCheckedDescription { get; set; }
+        public bool IsCheckedMakeBuy { get; set; }
+        public bool IsCheckedMaterial { get; set; }
+        public bool IsCheckedRevision { get; set; }
 
         #endregion
 

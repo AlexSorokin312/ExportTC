@@ -13,6 +13,7 @@
     <None Remove="Resources\checkedin.png" />
     <None Remove="Resources\checkedout.png" />
     <None Remove="Resources\frozen.png" />
+    <None Remove="Resources\HENKON.xlsm" />
     <None Remove="Resources\ic_pdf.png" />
     <None Remove="Resources\ic_sldasm.png" />
     <None Remove="Resources\ic_sw_cool_prt.png" />
@@ -20,6 +21,10 @@
     <None Remove="Resources\new.png" />
     <None Remove="Resources\released.png" />
     <None Remove="Resources\state.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\HENKON.xlsm" />
   </ItemGroup>
 
   <ItemGroup>

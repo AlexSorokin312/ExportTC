@@ -1,7 +1,8 @@
 ﻿using ExportTC.Constants;
+using ExportTC.Extensions;
 using ExportTC.Interfaces;
-using HenconExport;
 using HenconExport.Model.Elemnts;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace ExportTC.Model.ElementParcers
@@ -36,7 +37,7 @@ namespace ExportTC.Model.ElementParcers
                         elementToUpdate.Name = cols[2].InnerText.Clean();
                         elementToUpdate.MakeOrBuy = ExtractMakeOrBuyFromColumn(cols[3].InnerHtml);
                         elementToUpdate.Revision = cols[4].InnerText.Clean();
-                        elementToUpdate.FileName = ExtractHrefValueFromColumn(cols[0].InnerHtml);
+                        elementToUpdate.FileName = ExtractHrefValueFromColumn(cols[0].InnerHtml, htmlPath);
                         elementToUpdate.ProductStatus = ExtractStatusFromColumn(cols[0].InnerHtml);
                         elementToUpdate.Type = ExtractImageTypeFromColumn(cols[0].InnerHtml);
                         elementToUpdate.Drawing = ExtractDrawingImageTypeFromColumn(cols[0].InnerHtml);
@@ -52,10 +53,33 @@ namespace ExportTC.Model.ElementParcers
             return match.Success ? match.Groups[1].Value : "Unknown";
         }
 
-        private string ExtractHrefValueFromColumn(string innerHtml)
+        private string ExtractHrefValueFromColumn(string innerHtml, string htmlPath)
         {
             var match = Regex.Match(innerHtml, @"href=""(\d+\.htm)""");
-            return match.Success ? match.Groups[1].Value : null;
+            var result = match.Success ? match.Groups[1].Value : null;
+
+            if (result == null)
+                return null;
+
+            string directory = Path.GetDirectoryName(htmlPath);
+
+            string foundFilePath = FindFileInSubdirectories(directory, result);
+            string extractedFileName = FileNameExtactor.ExtractFileNameFromText(foundFilePath);
+            return extractedFileName;
+        }
+
+        private string FindFileInSubdirectories(string directory, string fileName)
+        {
+            try
+            {
+                var files = Directory.GetFiles(directory, fileName, SearchOption.AllDirectories);
+                return files.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при поиске файла: {ex.Message}");
+                return null;
+            }
         }
 
         private static string ExtractStatusFromColumn(string innerHtml)

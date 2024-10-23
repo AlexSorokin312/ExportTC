@@ -140,17 +140,17 @@ namespace ExportTC.ViewModel
 
         partial void OnIsCheckedPositionChanged(bool? oldValue, bool? newValue)
         {
-            _initialData.IsCheckedPosition = newValue;
+            _initialData.IsCheckedPosition = newValue ?? false;
         }
 
         partial void OnIsCheckedMakeBuyChanged(bool? oldValue, bool? newValue)
         {
-            _initialData.IsCheckedMakeBuy = newValue;
+            _initialData.IsCheckedMakeBuy = newValue ?? false;
         }
 
         partial void OnIsCheckedMaterialChanged(bool? oldValue, bool? newValue)
         {
-            _initialData.IsCheckedMaterial = newValue;
+            _initialData.IsCheckedMaterial = newValue ?? false;
         }
     }
 }

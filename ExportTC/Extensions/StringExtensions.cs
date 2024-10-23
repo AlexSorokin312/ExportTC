@@ -1,4 +1,4 @@
-﻿namespace HenconExport
+﻿namespace ExportTC.Extensions
 {
     public static class StringExtensions
     {
