@@ -40,6 +40,18 @@ namespace ExportTC.ViewModel
         private string? _revisionColumn;
 
         [ObservableProperty]
+        private string? _costtypeColumn;
+
+        [ObservableProperty]
+        private string? _spareColumn;
+
+        [ObservableProperty]
+        private string? _itemCodeSupplierColumn;
+
+        [ObservableProperty]
+        private string? _addInfoColumn;
+
+        [ObservableProperty]
         private bool? _isCheckedPosition;
 
         [ObservableProperty]
@@ -56,8 +68,21 @@ namespace ExportTC.ViewModel
 
         [ObservableProperty]
         private bool? _isCheckedMaterial;
+
         [ObservableProperty]
         private bool? _isCheckedRevision;
+
+        [ObservableProperty]
+        private bool? _isCheckedCosttype;
+
+        [ObservableProperty]
+        private bool? _isCheckedSpare;
+
+        [ObservableProperty]
+        private bool? _isCheckedItemCodeSupplier;
+
+        [ObservableProperty]
+        private bool? _isCheckedAddInfo;
 
         private readonly InitialData _initialData;
 
@@ -77,6 +102,10 @@ namespace ExportTC.ViewModel
             MakeBuyColumn = _initialData.MakeBuyColumn;
             MaterialColumn = _initialData.MaterialColumn;
             RevisionColumn = _initialData.RevisionColumn;
+            CosttypeColumn = _initialData.CosttypeColumn;
+            SpareColumn = _initialData.SpareColumn;
+            ItemCodeSupplierColumn = _initialData.ItemCodeSupplierColumn;
+            AddInfoColumn = _initialData.AddInfoColumn;
 
             IsCheckedMakeBuy = _initialData.IsCheckedMakeBuy;
             IsCheckedMaterial = _initialData.IsCheckedMaterial;
@@ -85,11 +114,15 @@ namespace ExportTC.ViewModel
             IsCheckedPosition = _initialData.IsCheckedPosition;
             IsCheckedQuantity = _initialData.IsCheckedQuantity;
             IsCheckedRevision = _initialData.IsCheckedRevision;
+            IsCheckedCosttype = _initialData.IsCheckedCosttype;
+            IsCheckedSpare = _initialData.IsCheckedSpare;
+            IsCheckedItemCodeSupplier = _initialData.IsCheckedItemCodeSupplier;
+            IsCheckedAddInfo = _initialData.IsCheckedAddInfo;
         }
 
         partial void OnHeaderRowNumberChanged(int? oldValue, int? newValue)
         {
-            _initialData.HeaderRow = newValue ?? 0; 
+            _initialData.HeaderRow = newValue ?? 0;
         }
 
         partial void OnEndRowChanged(int? oldValue, int? newValue)
@@ -137,6 +170,30 @@ namespace ExportTC.ViewModel
             _initialData.MaterialColumn = newValue;
         }
 
+        partial void OnRevisionColumnChanged(string? oldValue, string? newValue)
+        {
+            _initialData.RevisionColumn = newValue;
+        }
+
+        partial void OnCosttypeColumnChanged(string? oldValue, string? newValue)
+        {
+            _initialData.CosttypeColumn = newValue;
+        }
+
+        partial void OnSpareColumnChanged(string? oldValue, string? newValue)
+        {
+            _initialData.SpareColumn = newValue;
+        }
+
+        partial void OnItemCodeSupplierColumnChanged(string? oldValue, string? newValue)
+        {
+            _initialData.ItemCodeSupplierColumn = newValue;
+        }
+
+        partial void OnAddInfoColumnChanged(string? oldValue, string? newValue)
+        {
+            _initialData.AddInfoColumn = newValue;
+        }
 
         partial void OnIsCheckedPositionChanged(bool? oldValue, bool? newValue)
         {
@@ -151,6 +208,31 @@ namespace ExportTC.ViewModel
         partial void OnIsCheckedMaterialChanged(bool? oldValue, bool? newValue)
         {
             _initialData.IsCheckedMaterial = newValue ?? false;
+        }
+
+        partial void OnIsCheckedRevisionChanged(bool? oldValue, bool? newValue)
+        {
+            _initialData.IsCheckedRevision = newValue ?? false;
+        }
+
+        partial void OnIsCheckedCosttypeChanged(bool? oldValue, bool? newValue)
+        {
+            _initialData.IsCheckedCosttype = newValue ?? false;
+        }
+
+        partial void OnIsCheckedSpareChanged(bool? oldValue, bool? newValue)
+        {
+            _initialData.IsCheckedSpare = newValue ?? false;
+        }
+
+        partial void OnIsCheckedItemCodeSupplierChanged(bool? oldValue, bool? newValue)
+        {
+            _initialData.IsCheckedItemCodeSupplier = newValue ?? false;
+        }
+
+        partial void OnIsCheckedAddInfoChanged(bool? oldValue, bool? newValue)
+        {
+            _initialData.IsCheckedAddInfo = newValue ?? false;
         }
     }
 }

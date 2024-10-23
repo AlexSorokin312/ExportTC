@@ -82,6 +82,22 @@ public class ExcelDataImporter : IInitialDataSetter
         {
             _initialData.RevisionColumn = columnName;
         }
+        else if (cellValue == ColumnNameConstants.ITEM_CODE_SUPPLIER)
+        {
+            _initialData.ItemCodeSupplierColumn = columnName;
+        }
+        else if (cellValue == ColumnNameConstants.COSTTYPE)
+        {
+            _initialData.CosttypeColumn = columnName;
+        }
+        else if (cellValue == ColumnNameConstants.SPARE)
+        {
+            _initialData.SpareColumn = columnName;
+        }
+        else if (cellValue == ColumnNameConstants.ADD_INFO)
+        {
+            _initialData.AddInfoColumn = columnName;
+        }
     }
 
     private string ExcelColumnFromNumber(int column)

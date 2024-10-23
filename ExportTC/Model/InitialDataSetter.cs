@@ -29,7 +29,7 @@ namespace ExportTC.Model
 
         private void ProcessColumns(int sheetNumber, int headerRowNumber)
         {
-            for (int col = 1; col <= 30; col++)
+            for (int col = 1; col <= 40; col++)
             {
                 string columnName = ExcelColumnFromNumber(col);
                 string cellValue = _excelReader.ReadCell(sheetNumber, columnName, headerRowNumber);
@@ -92,6 +92,22 @@ namespace ExportTC.Model
             else if (cellValue == ColumnNameConstants.REVISION)
             {
                 _initialData.RevisionColumn = columnName;
+            }
+            else if (cellValue == ColumnNameConstants.ITEM_CODE_SUPPLIER)
+            {
+                _initialData.ItemCodeSupplierColumn = columnName;
+            }
+            else if (cellValue == ColumnNameConstants.COSTTYPE)
+            {
+                _initialData.CosttypeColumn = columnName;
+            }
+            else if (cellValue == ColumnNameConstants.SPARE)
+            {
+                _initialData.SpareColumn = columnName;
+            }
+            else if (cellValue == ColumnNameConstants.ADD_INFO)
+            {
+                _initialData.AddInfoColumn = columnName;
             }
         }
 

@@ -50,6 +50,10 @@ namespace ExportTC.Model
 
                     elements.Add(htmlElement);
                 }
+                else
+                {
+                    htmlElement.Pos = element.Pos;
+                }
             }
         }
 
@@ -87,7 +91,11 @@ namespace ExportTC.Model
                 DescriptionColumn = initialData.DescriptionColumn,
                 QuantityColumn = initialData.QuantityColumn,
                 MakeOrBuyColumn = initialData.MakeBuyColumn,
-                RevisionColumn = initialData.RevisionColumn
+                RevisionColumn = initialData.RevisionColumn,
+                ItemCodeSupplier = initialData.ItemCodeSupplierColumn,
+                Costtype = initialData.CosttypeColumn,
+                Spare = initialData.SpareColumn,
+                AddInfo = initialData.AddInfoColumn
             };
         }
 

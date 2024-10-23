@@ -16,7 +16,7 @@ namespace ExportTC.Model
         public string? ProductIDCell { get; set; }
         public string? ProductNameCell { get; set; }
         public int HeaderRow { get; set; }
-        public int StartRow => HeaderRow+1;
+        public int StartRow => HeaderRow + 1;
         public int EndRow { get; set; }
 
         public string? PositionColumn { get; set; }
@@ -26,6 +26,10 @@ namespace ExportTC.Model
         public string? MakeBuyColumn { get; set; }
         public string? MaterialColumn { get; set; }
         public string? RevisionColumn { get; set; }
+        public string? CosttypeColumn { get; set; }
+        public string? SpareColumn { get; set; }
+        public string? ItemCodeSupplierColumn { get; set; }
+        public string? AddInfoColumn { get; set; }
 
         public bool IsCheckedPosition { get; set; }
         public bool IsCheckedDesignation { get; set; }
@@ -34,7 +38,11 @@ namespace ExportTC.Model
         public bool IsCheckedMakeBuy { get; set; }
         public bool IsCheckedMaterial { get; set; }
         public bool IsCheckedRevision { get; set; }
-
+        public bool IsCheckedCosttype { get; set; }
+        public bool IsCheckedSpare { get; set; }
+        public bool IsCheckedItemCodeSupplier { get; set; }
+        public bool IsCheckedAddInfo { get; set; }
+        public string PathFiles { get; set; }
         #endregion
 
         public InitialData()
@@ -51,8 +59,10 @@ namespace ExportTC.Model
             IsCheckedPosition = false;
             IsCheckedQuantity = true;
             IsCheckedRevision = true;
+            IsCheckedCosttype = false;
+            IsCheckedSpare = false;
+            IsCheckedItemCodeSupplier = false;
+            IsCheckedAddInfo = false;
         }
-
     }
-
 }

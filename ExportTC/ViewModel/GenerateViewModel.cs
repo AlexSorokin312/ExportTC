@@ -74,7 +74,7 @@ namespace ExportTC.ViewModel
             string outputPath = Path.Combine(desktopPath, "Output.xlsm");
 
             // Извлечение шаблона Excel из ресурсов и копирование его в выходной файл
-            using (var resourceStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/HENKON.xlsm")).Stream)
+            using (var resourceStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/HENKON_imp.xlsm")).Stream)
             {
                 using (var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
                 {
@@ -90,13 +90,13 @@ namespace ExportTC.ViewModel
                 var elements = _assembly.Elements;
                 foreach (var element in elements)
                 {
-
                     excelWriter.WriteCell(worksheet, row, 3, element.Designation);
                     excelWriter.WriteCell(worksheet, row, 4, element.Name);
                     excelWriter.WriteCell(worksheet, row, 5, element.Quantity);
                     if (_initialData.IsCheckedMakeBuy)
-                        excelWriter.WriteCell(worksheet, row, 2, element.Type);
+                        excelWriter.WriteCell(worksheet, row, 2, "Элемент");
                     excelWriter.WriteCell(worksheet, row, 10, element.Revision);
+                    excelWriter.WriteCell(worksheet, row, 11, element.Pos);
 
                     if (element.Parent != null)
                         excelWriter.WriteCell(worksheet, row, 1, element.Parent.Designation);
@@ -104,13 +104,16 @@ namespace ExportTC.ViewModel
                     var fileName = element.FileName;
                     if (string.IsNullOrEmpty(fileName) || element.Designation == null)
                     {
-                        excelWriter.WriteCell(worksheet, row, 26, element.Designation + ".SLDASM");
+                        excelWriter.WriteCell(worksheet, row, 27, element.Designation + ".SLDASM");
                         row++;
                         continue;
                     }
-
+                    if (fileName.Contains(".pdf") || fileName.Contains(".PDF"))
+                        excelWriter.WriteCell(worksheet, row, 24, element.FileName);
+                    if (fileName.Contains(".zip") || fileName.Contains(".ZIP"))
+                        excelWriter.WriteCell(worksheet, row, 30, element.FileName);
                     if (fileName.Contains("SLDPRT") || fileName.Contains("sldprt"))
-                        excelWriter.WriteCell(worksheet, row, 25, element.FileName);
+                        excelWriter.WriteCell(worksheet, row, 26, element.FileName);
                     if (fileName.Contains("dwg") || fileName.Contains("DWG"))
                         excelWriter.WriteCell(worksheet, row, 27, element.FileName);
                     if (fileName.Contains("jpg") || fileName.Contains("JPG"))

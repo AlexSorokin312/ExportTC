@@ -121,46 +121,78 @@
 
         <!-- Custom Excel Rows -->
         <GroupBox Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="4" 
-                  Header="Столбцы, содержащие данные:" 
-                  Margin="0,5,0,0">
-            <StackPanel>
-                <custom:ExcelRow Content="Позиция (Pos)" 
-                                 DirectoryPath="{Binding PositionColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                 IsChecked="{Binding IsCheckedPosition, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                 Margin="0,0,0,0" Padding="0"/>
+          Header="Столбцы, содержащие данные:" 
+          Margin="0,5,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-                <custom:ExcelRow Content="Обозначение (ID)" 
-                                 DirectoryPath="{Binding DesignationColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                 IsChecked="{Binding IsCheckedDesignation, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                 Margin="0,0,0,0" Padding="0"/>
+                <!-- Первый столбец -->
+                <StackPanel Grid.Column="0">
+                    <custom:ExcelRow Content="Позиция (Pos)" 
+                             DirectoryPath="{Binding PositionColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             IsChecked="{Binding IsCheckedPosition, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             Margin="0,0,0,0" Padding="0"/>
 
-                <custom:ExcelRow Content="Количество (TQTY)" 
-                                 DirectoryPath="{Binding QuantityColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                 IsChecked="{Binding IsCheckedQuantity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                 Margin="0,0,0,0" Padding="0"/>
+                    <custom:ExcelRow Content="Обозначение (ID)" 
+                             DirectoryPath="{Binding DesignationColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             IsChecked="{Binding IsCheckedDesignation, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             Margin="0,0,0,0" Padding="0"/>
 
-                <custom:ExcelRow Content="Наименование (Description)" 
-                                 DirectoryPath="{Binding DescriptionColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                 IsChecked="{Binding IsCheckedDescription, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                 Margin="0,0,0,0" Padding="0"/>
+                    <custom:ExcelRow Content="Количество (TQTY)" 
+                             DirectoryPath="{Binding QuantityColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             IsChecked="{Binding IsCheckedQuantity, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             Margin="0,0,0,0" Padding="0"/>
 
-                <custom:ExcelRow Content="Тип изделия (MakeBuy)" 
-                                 DirectoryPath="{Binding MakeBuyColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                 IsChecked="{Binding IsCheckedMakeBuy, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                 Margin="0,0,0,0" Padding="0"/>
+                    <custom:ExcelRow Content="Наименование (Description)" 
+                             DirectoryPath="{Binding DescriptionColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             IsChecked="{Binding IsCheckedDescription, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             Margin="0,0,0,0" Padding="0"/>
 
-                <custom:ExcelRow Content="Material (Material)" 
-                                 DirectoryPath="{Binding MaterialColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                 IsChecked="{Binding IsCheckedMaterial, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                 Margin="0,0,0,0" Padding="0"/>
+                    <custom:ExcelRow Content="Тип изделия (MakeBuy)" 
+                             DirectoryPath="{Binding MakeBuyColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             IsChecked="{Binding IsCheckedMakeBuy, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             Margin="0,0,0,0" Padding="0"/>
 
-                <!-- Новый элемент для RevisionColumn -->
-                <custom:ExcelRow Content="Ревизия (Revision)" 
-                         DirectoryPath="{Binding RevisionColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                         IsChecked="{Binding IsCheckedRevision, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                         Margin="0,0,0,0" Padding="0"/>
-            </StackPanel>
+                    <custom:ExcelRow Content="Material (Material)" 
+                             DirectoryPath="{Binding MaterialColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             IsChecked="{Binding IsCheckedMaterial, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             Margin="0,0,0,0" Padding="0"/>
+                </StackPanel>
+
+                <!-- Второй столбец -->
+                <StackPanel Grid.Column="2">
+                    <custom:ExcelRow Content="Тип стоимости (Costtype)" 
+                             DirectoryPath="{Binding CosttypeColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             IsChecked="{Binding IsCheckedCosttype, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             Margin="0,0,0,0" Padding="0"/>
+
+                    <custom:ExcelRow Content="Spare" 
+                             DirectoryPath="{Binding SpareColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             IsChecked="{Binding IsCheckedSpare, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             Margin="0,0,0,0" Padding="0"/>
+
+                    <custom:ExcelRow Content="Ревизия (Revision)" 
+                             DirectoryPath="{Binding RevisionColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             IsChecked="{Binding IsCheckedRevision, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             Margin="0,0,0,0" Padding="0"/>
+
+                    <custom:ExcelRow Content="ITEM CODE SUPPLIER" 
+                             DirectoryPath="{Binding ItemCodeSupplierColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             IsChecked="{Binding IsCheckedItemCodeSupplier, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             Margin="0,0,0,0" Padding="0"/>
+
+                    <custom:ExcelRow Content="Дополнительная информация (ADD INFO)" 
+                             DirectoryPath="{Binding AddInfoColumn, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             IsChecked="{Binding IsCheckedAddInfo, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             Margin="0,0,0,0" Padding="0"/>
+                </StackPanel>
+            </Grid>
         </GroupBox>
+
 
     </Grid>
 </UserControl>

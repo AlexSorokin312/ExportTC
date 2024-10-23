@@ -41,7 +41,11 @@ namespace ExportTC.Model.ElementParcers
                         elementToUpdate.ProductStatus = ExtractStatusFromColumn(cols[0].InnerHtml);
                         elementToUpdate.Type = ExtractImageTypeFromColumn(cols[0].InnerHtml);
                         elementToUpdate.Drawing = ExtractDrawingImageTypeFromColumn(cols[0].InnerHtml);
-                        elementToUpdate.Revision = cols[4].InnerText.Clean();
+
+                        if (string.IsNullOrEmpty(elementToUpdate.Revision))
+                        {
+                            elementToUpdate.Revision = "00";
+                        }
                     }
                 }
             }

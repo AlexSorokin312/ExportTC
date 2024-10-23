@@ -17,15 +17,23 @@ namespace HenconExport.Model.Elemnts
         public Element Parent { get; set; }
         public List<Element>? Children { get; set; } = new List<Element>();
 
+        // Новые поля
+        public string? ItemCodeSupplier { get; set; }
+        public string? Costtype { get; set; }
+        public string? Spare { get; set; }
+        public string? AddInfo { get; set; }
+
         public Element(string designation, string assembly)
         {
             Designation = designation;
             Name = assembly;
+            Revision = "00";
         }
 
         public Element()
         {
-            Type = ElementConstants.DEFAULT_TYPE;   
+            Revision = "00";
+            Type = ElementConstants.DEFAULT_TYPE;
         }
 
         public Element(string designation, string assembly, string pos, string quantity, string makeOrBuy, string revision) : this(designation, assembly)
@@ -33,7 +41,7 @@ namespace HenconExport.Model.Elemnts
             Pos = pos;
             Quantity = quantity;
             MakeOrBuy = makeOrBuy;
-            Revision = revision;
+            Revision = revision ?? "00";
         }
     }
 }

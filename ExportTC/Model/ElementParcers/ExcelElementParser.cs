@@ -18,7 +18,6 @@ public class ExcelElementParser
 
         return ExtractElementsFromExcel(excelReader, config);
     }
-
     private List<Element> ExtractElementsFromExcel(IExcelReader excelReader, ExcelElementConfig config)
     {
         var elements = new List<Element>();
@@ -29,7 +28,9 @@ public class ExcelElementParser
             var element = CreateExcelElement(excelReader, config.SheetNumber, row,
                                              config.PositionColumn, config.DesignationColumn,
                                              config.DescriptionColumn, config.QuantityColumn,
-                                             config.MakeOrBuyColumn, config.RevisionColumn);
+                                             config.MakeOrBuyColumn, config.RevisionColumn,
+                                             config.ItemCodeSupplier, config.Costtype,
+                                             config.Spare, config.AddInfo);
             if (element != null)
             {
                 elements.Add(element);
@@ -57,7 +58,11 @@ public class ExcelElementParser
                                        string descriptionColumn,
                                        string quantityColumn,
                                        string makeOrBuyColumn,
-                                       string revisionColumn)
+                                       string revisionColumn,
+                                       string itemCodeSupplierColumn,
+                                       string costtypeColumn,
+                                       string spareColumn,
+                                       string addInfoColumn)
     {
         string pos = excelReader.ReadCell(sheetNumber, positionColumn, row) ?? string.Empty;
         string designation = excelReader.ReadCell(sheetNumber, designationColumn, row) ?? string.Empty;
@@ -66,7 +71,22 @@ public class ExcelElementParser
         string makeOrBuy = excelReader.ReadCell(sheetNumber, makeOrBuyColumn, row) ?? string.Empty;
         string revision = excelReader.ReadCell(sheetNumber, revisionColumn, row) ?? string.Empty;
 
-        return new Element(designation, name, pos, quantity, makeOrBuy, revision);
+        // Чтение новых столбцов
+        string itemCodeSupplier = excelReader.ReadCell(sheetNumber, itemCodeSupplierColumn, row) ?? string.Empty;
+        string costtype = excelReader.ReadCell(sheetNumber, costtypeColumn, row) ?? string.Empty;
+        string spare = excelReader.ReadCell(sheetNumber, spareColumn, row) ?? string.Empty;
+        string addInfo = excelReader.ReadCell(sheetNumber, addInfoColumn, row) ?? string.Empty;
+
+        // Создание элемента с новыми полями
+        var element = new Element(designation, name, pos, quantity, makeOrBuy, revision)
+        {
+            ItemCodeSupplier = itemCodeSupplier,
+            Costtype = costtype,
+            Spare = spare,
+            AddInfo = addInfo
+        };
+
+        return element;
     }
 
     private void AssignParentsAndChildren(List<Element> elements)
@@ -92,7 +112,7 @@ public class ExcelElementParser
         var orphans = elements.Where(e => e.Parent == null).ToList();
         orphans.ForEach(e => e.Parent = rootElement);
         rootElement.Children.AddRange(orphans);
-        elements.Insert(0, rootElement); // Root element at the beginning
+        elements.Insert(0, rootElement); 
     }
 
     private string GetParentDesignation(string pos)
