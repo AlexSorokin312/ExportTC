@@ -24,4 +24,19 @@ public class FileSearchService : IFileSearchService
             return null;
         }
     }
+    public IEnumerable<string> FindFilesWithCriteria(string directory, string searchString, string extension)
+    {
+        try
+        {
+            return Directory.EnumerateFiles(directory, $"*{extension}", SearchOption.AllDirectories)
+                            .Where(file => Path.GetFileNameWithoutExtension(file)
+                                           .Contains(searchString, StringComparison.OrdinalIgnoreCase));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при поиске файлов: {ex.Message}");
+            return Enumerable.Empty<string>();
+        }
+    }
+
 }

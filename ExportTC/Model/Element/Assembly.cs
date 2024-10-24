@@ -18,13 +18,12 @@ public class Assembly
 
     public void Sort()
     {
-        if (_elements.Count <= 1) return; // Ничего не делаем, если нет элементов для сортировки
+        if (_elements.Count <= 1) return; 
 
-        var firstElement = _elements[0]; // Сохраняем первый элемент
+        var firstElement = _elements[0];
 
-        // Сортируем остальные элементы
         var sortedElements = _elements.Skip(1)
-            .Where(e => e.Pos != null) // Исключаем элементы с null в Pos
+            .Where(e => e.Pos != null) 
             .ToList();
 
         sortedElements.Sort((a, b) =>
@@ -32,23 +31,18 @@ public class Assembly
             int aDotCount = CountDots(a.Pos);
             int bDotCount = CountDots(b.Pos);
 
-            // Сравниваем по количеству точек
             if (aDotCount != bDotCount) return aDotCount.CompareTo(bDotCount);
 
-            // Если количество точек одинаково, сортируем по Designation
             return CompareDesignation(a.Designation, b.Designation);
         });
 
-        // Получаем элементы с null в Pos
         var nullElements = _elements.Skip(1)
             .Where(e => e.Pos == null)
             .ToList();
 
-        // Объединяем все элементы: первый элемент + отсортированные + элементы с null в Pos
         sortedElements.Insert(0, firstElement);
         sortedElements.AddRange(nullElements);
 
-        // Обновляем коллекцию
         _elements.Clear();
         _elements.AddRange(sortedElements);
     }

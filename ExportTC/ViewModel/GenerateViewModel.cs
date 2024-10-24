@@ -4,6 +4,7 @@ using ExportTC.Model;
 using HenconExport;
 using HenconExport.Model.Elemnts;
 using Microsoft.Extensions.DependencyInjection;
+using OfficeOpenXml;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -15,6 +16,7 @@ namespace ExportTC.ViewModel
     internal class GenerateViewModel : ObservableObject
     {
         private InitialData _initialData;
+        private IFileSearchService _fileSearchService;
         private Assembly _assembly;
         public ObservableCollection<Element> RootElements { get; private set; } = new ObservableCollection<Element>();
 
@@ -35,6 +37,7 @@ namespace ExportTC.ViewModel
         public GenerateViewModel()
         {
             _initialData = App.ServiceProvider.GetService<InitialData>();
+            _fileSearchService = App.ServiceProvider.GetService<IFileSearchService>();
             ComboBoxItems = new ObservableCollection<string> { 
                 "Структура изделия (с матрицей)",
                 "Структура изделия с заменами",
@@ -96,7 +99,13 @@ namespace ExportTC.ViewModel
                     if (_initialData.IsCheckedMakeBuy)
                         excelWriter.WriteCell(worksheet, row, 2, "Элемент");
                     excelWriter.WriteCell(worksheet, row, 10, element.Revision);
-                    excelWriter.WriteCell(worksheet, row, 11, element.Pos);
+                    //excelWriter.WriteCell(worksheet, row, 11, element.Pos);
+                    excelWriter.WriteCell(worksheet, row, 31, element.Costtype);
+                    excelWriter.WriteCell(worksheet, row, 32, element.MakeOrBuy);
+                    excelWriter.WriteCell(worksheet, row, 33, element.Spare);
+                    excelWriter.WriteCell(worksheet, row, 34, element.ItemCodeSupplier);
+                    excelWriter.WriteCell(worksheet, row, 35, element.Type);
+                    excelWriter.WriteCell(worksheet, row, 36, element.AddInfo);
 
                     if (element.Parent != null)
                         excelWriter.WriteCell(worksheet, row, 1, element.Parent.Designation);
@@ -126,20 +135,19 @@ namespace ExportTC.ViewModel
                             excelWriter.WriteCell(worksheet, row, 19, element.FileName);
                         }
                     }
-                       
 
                     if (fileName.Contains("jpg") || fileName.Contains("JPG"))
                         excelWriter.WriteCell(worksheet, row, 29, element.FileName);
 
-                    string searchDirectory = @"C:\Users\ASorokin\Desktop\447033164\HENKON_164";
+                    string searchDirectory = _initialData.BaseDirectory;
 
                     if (!string.IsNullOrEmpty(element.Designation))
                     {
                         // Получаем все файлы с расширением .SLDDRW
+                        var allFiles = Directory.EnumerateFiles(searchDirectory, "*.SLDDRW", SearchOption.AllDirectories);
                         var foundFiles = Directory.EnumerateFiles(searchDirectory, "*.SLDDRW", SearchOption.AllDirectories)
                                                   .Where(file => Path.GetFileNameWithoutExtension(file)
                                                                   .Contains(element.Designation, StringComparison.OrdinalIgnoreCase));
-
                         if (foundFiles.Any())
                         {
                             // Если найден хотя бы один файл, записываем его в нужную ячейку
@@ -152,14 +160,10 @@ namespace ExportTC.ViewModel
                     }
 
                     row++;
-
-      
                 }
-
                 excelWriter.Save();
                 Process.Start(new ProcessStartInfo(outputPath) { UseShellExecute = true });
             }
         }
-
     }
 }
