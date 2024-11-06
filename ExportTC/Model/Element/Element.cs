@@ -11,9 +11,18 @@ namespace HenconExport.Model.Elemnts
         public string? MakeOrBuy { get; set; }
         public string? ProductStatus { get; set; }
         public string? Revision { get; set; }
-        public string? Type { get; set; }
+        public string? TCType { get; set; }
+        public string? TreeType { get; set; }
+        public string? DrawingFile { get; set; }
+        public string? ZipFile { get; set; }
+        public string? PartFile { get; set; }
+        public string? AssemblyFile { get; set; }
+        public string? DocFile { get; set; }
+        public string? DocxFile { get; set; }
+        public string? JpegFile { get; set; }
+        public string? PDFFile { get; set; }
         public string? FileName { get; set; }
-        public string? Drawing { get; set; }
+        public string? DrawingIcon { get; set; }
         public Element Parent { get; set; }
         public List<Element>? Children { get; set; } = new List<Element>();
 
@@ -33,7 +42,7 @@ namespace HenconExport.Model.Elemnts
         public Element()
         {
             Revision = "00";
-            Type = ElementConstants.DEFAULT_TYPE;
+            TCType = ElementConstants.DEFAULT_TYPE;
         }
 
         public Element(string designation, string assembly, string pos, string quantity, string makeOrBuy, string revision) : this(designation, assembly)

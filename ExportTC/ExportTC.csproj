@@ -15,9 +15,12 @@
     <None Remove="Resources\frozen.png" />
     <None Remove="Resources\HENKON.xlsm" />
     <None Remove="Resources\HENKON_imp.xlsm" />
+    <None Remove="Resources\ic_doc.png" />
+    <None Remove="Resources\ic_gif.png" />
     <None Remove="Resources\ic_pdf.png" />
     <None Remove="Resources\ic_sldasm.png" />
     <None Remove="Resources\ic_sw_cool_prt.png" />
+    <None Remove="Resources\ic_zip.png" />
     <None Remove="Resources\logo.ico" />
     <None Remove="Resources\new.png" />
     <None Remove="Resources\released.png" />
@@ -48,9 +51,12 @@
     <Resource Include="Resources\checkedout.png" />
     <Resource Include="Resources\frozen.png" />
     <Resource Include="Resources\HENKON_imp.xlsm" />
+    <Resource Include="Resources\ic_doc.png" />
+    <Resource Include="Resources\ic_gif.png" />
     <Resource Include="Resources\ic_pdf.png" />
     <Resource Include="Resources\ic_sldasm.png" />
     <Resource Include="Resources\ic_sw_cool_prt.png" />
+    <Resource Include="Resources\ic_zip.png" />
     <Resource Include="Resources\logo.ico" />
     <Resource Include="Resources\new.png" />
     <Resource Include="Resources\released.png" />

@@ -12,7 +12,6 @@ namespace ExportTC.Converters
             if (value is string elementType)
             {
                 if (elementType == ElementConstants.DETAIL)
-                
                 {
                     return "pack://application:,,,/Resources/ic_sw_cool_prt.png";
                 }
@@ -23,6 +22,22 @@ namespace ExportTC.Converters
                 else if (elementType == ElementConstants.PDF)
                 {
                     return "pack://application:,,,/Resources/ic_pdf.png";
+                }
+                else if (elementType == ElementConstants.PDF)
+                {
+                    return "pack://application:,,,/Resources/ic_pdf.png";
+                }
+                else if (elementType == ElementConstants.DOC)
+                {
+                    return "pack://application:,,,/Resources/ic_doc.png";
+                }
+                else if (elementType == ElementConstants.ZIP)
+                {
+                    return "pack://application:,,,/Resources/ic_zip.png";
+                }
+                else if (elementType == ElementConstants.GIF)
+                {
+                    return "pack://application:,,,/Resources/ic_gif.png";
                 }
             }
 

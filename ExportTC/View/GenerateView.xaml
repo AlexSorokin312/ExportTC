@@ -51,7 +51,7 @@
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal">
-                        <Image Source="{Binding Type, Converter={StaticResource TypeToImageConverter}}" Width="16" Height="16" Margin="5"/>
+                        <Image Source="{Binding DrawingIcon, Converter={StaticResource TypeToImageConverter}}" Width="16" Height="16" Margin="5"/>
                         <Image Source="{Binding ProductStatus, Converter={StaticResource ProductStatusToImageConverter}}" Width="16" Height="16" Margin="5"/>
                         <TextBlock Text="{Binding Designation}" Margin="5,0,0,0"/>
                         <TextBlock Text="{Binding Quantity}" Margin="20,0,0,0" Foreground="Blue"/>

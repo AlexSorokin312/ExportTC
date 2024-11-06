@@ -1,6 +1,4 @@
-﻿using System.Windows.Input;
-
-namespace ExportTC.Constants
+﻿namespace ExportTC.Constants
 {
     public static class CommonConstants
     {
@@ -19,9 +17,8 @@ namespace ExportTC.Constants
         {
             Replacments = new Dictionary<string, string>
             {
-                { "buy", "BUY" },
-                { "make", "MAKE" },
-                { "nobom", "NO_BOOM" },
+                { "BUY", "Buy" },
+                { "MAKE", "Make" },
 
             };
 
@@ -35,13 +32,12 @@ namespace ExportTC.Constants
             ElementTypePictures = new Dictionary<string, string>
             {
                 { "ic_sldasm.png", ElementConstants.ASSEMBLY},
-                { "ic_pdf.png", ElementConstants.PDF },
                 { "ic_sldprt.png", ElementConstants.DETAIL},
-                { "ic_doc.png", ElementConstants.DOC },
-                { "ic_gif.png", ElementConstants.GIF },
-                { "ic_zip.png", ElementConstants.ZIP },
-                { "ic_generic.png", ElementConstants.GENERIC },
-                { "ic_dwg.png", ElementConstants.DWG }
+                { "ic_pdf.png", ElementConstants.PDF},
+                { "ic_zip.png", ElementConstants.ZIP},
+                { "ic_doc.png", ElementConstants.DOC},
+                { "ic_gif.png", ElementConstants.GIF},
+
             };
 
             Statuses = new Dictionary<string, string>
@@ -66,7 +62,7 @@ namespace ExportTC.Constants
             return replacment;
         }
 
-        public static string GetMakeBuyReplacment(string content)
+        public static string GetMakeBuyReplacmentImage(string content)
         {
             foreach (var pictures in BomMakePictures)
             {
@@ -76,8 +72,20 @@ namespace ExportTC.Constants
             return string.Empty;
         }
 
+        public static string GetMakeBuyReplacmentText(string content)
+        {
+            foreach (var pictures in Replacments)
+            {
+                if (content.Contains(pictures.Key))
+                    return pictures.Value;
+            }
+            return string.Empty;
+        }
+
         public static string GetElementTypePicture(string content)
         {
+            if (string.IsNullOrEmpty(content))
+                return string.Empty;
             foreach (var picture in ElementTypePictures)
             {
                 if (content.Contains(picture.Key))

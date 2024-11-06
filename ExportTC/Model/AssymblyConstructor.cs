@@ -1,8 +1,8 @@
-﻿using ExportTC.Model.ElementParcers;
+﻿using ExportTC.Constants;
+using ExportTC.Model.ElementParcers;
 using ExportTC.Model.Factories;
 using HenconExport.Model.Elemnts;
 using System.IO;
-using System.Xml.Linq;
 
 namespace ExportTC.Model
 {
@@ -12,6 +12,7 @@ namespace ExportTC.Model
         private readonly HtmlElementParser _htmlElementParcer;
         private readonly IFileSearchService _fileSearchService;
         private readonly IExcelReaderFactory _excelFactory;
+        private readonly ParametersDefinder _parametersDefinder;
 
         public AssemblyConstructor(ExcelElementParser excelElementParser,
             HtmlElementParser htmlElementParcer,
@@ -22,6 +23,8 @@ namespace ExportTC.Model
             _excelElementParser = excelElementParser;
             _excelFactory = excelFactory;
             _fileSearchService = fileSearchService;
+
+            _parametersDefinder = new ParametersDefinder();
         }
 
         public Assembly GetAssembly(InitialData initialData)
@@ -116,13 +119,19 @@ namespace ExportTC.Model
                 {
                     element.Quantity = excelElement.Quantity;
                     element.Costtype = excelElement.Costtype;
-                    element.MakeOrBuy = excelElement.MakeOrBuy;
-                    element.Spare = excelElement.Spare;;
+                    element.MakeOrBuy = _parametersDefinder.DefineMakeBuy(excelElement.MakeOrBuy);
+                    element.Spare = _parametersDefinder.DefineSpare(excelElement.Spare);
                     element.ItemCodeSupplier = excelElement.ItemCodeSupplier;
                     element.AddInfo = excelElement.AddInfo;
                 }
                 else
+                {
                     element.Quantity = "1";
+                }
+
+               element.TreeType = _parametersDefinder.DefineElementType(element);
+                _parametersDefinder.DefineFiles(element);
+
             }
         }
 
@@ -150,9 +159,77 @@ namespace ExportTC.Model
                 if (!string.IsNullOrEmpty(foundPathFile))
                 {
                     var fileName = Path.GetFileName(foundPathFile);
-                    element.FileName = fileName;
+                    element.DrawingFile = fileName;
                 }
             }
+        }
+    }
+
+    public class ParametersDefinder
+    {
+        public string DefineElementType(Element element)
+        {
+            if (element.DrawingIcon == ElementConstants.DETAIL)
+                return ElementConstants.DETAIL;
+            if (element.DrawingIcon == ElementConstants.ASSEMBLY)
+                return ElementConstants.ASSEMBLY;
+
+            return ElementConstants.DRAFT;
+        }
+
+        public string DefineSpare(string spare)
+        {
+            if (spare == null)
+                return string.Empty;
+
+            spare = spare.Replace(';', ' ');
+
+            if (spare.Contains("N/A"))
+                return string.Empty;
+            if (spare.Contains("M M"))
+                return "M";
+
+            return spare;
+        }
+
+        public string DefineMakeBuy(string makeBuy)
+        {
+            makeBuy = CommonConstants.GetMakeBuyReplacmentText(makeBuy);
+            return makeBuy;
+        }
+
+        public void DefineFiles(Element element)
+        {
+            var fileName = element.FileName;
+            if (fileName == null)
+                return;
+
+            if (fileName.Contains(".pdf") || fileName.Contains(".PDF"))
+                element.PDFFile = fileName;
+                element.TCType = "PDF";
+
+
+            if (fileName.Contains(".zip") || fileName.Contains(".ZIP"))
+                element.ZipFile = fileName;
+                element.TCType = "ZIP";
+
+            if (fileName.Contains("SLDPRT") || fileName.Contains("sldprt"))
+                element.PartFile = fileName;
+
+            if (fileName.Contains("dwg") || fileName.Contains("DWG"))
+                element.DrawingFile = fileName;
+
+            if (fileName.Contains("doc") || fileName.Contains("DOC"))
+            {
+                if (fileName.Contains("docx") || fileName.Contains("DOCX"))
+                    element.DocxFile = fileName;
+                else
+                    element.DocFile = fileName;
+            }
+
+            if (fileName.Contains("jpg") || fileName.Contains("JPG"))
+                element.JpegFile = fileName;
+
         }
     }
 }

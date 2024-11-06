@@ -39,9 +39,8 @@ namespace ExportTC.Model.ElementParcers
                         elementToUpdate.Revision = cols[4].InnerText.Clean();
                         elementToUpdate.FileName = ExtractHrefValueFromColumn(cols[0].InnerHtml, htmlPath);
                         elementToUpdate.ProductStatus = ExtractStatusFromColumn(cols[0].InnerHtml);
-                        elementToUpdate.Type = ExtractImageTypeFromColumn(cols[0].InnerHtml);
-                        elementToUpdate.Drawing = ExtractDrawingImageTypeFromColumn(cols[0].InnerHtml);
-
+                        elementToUpdate.DrawingIcon = ExtractImageTypeFromColumn(cols[0].InnerHtml);
+                       
                         if (string.IsNullOrEmpty(elementToUpdate.Revision))
                         {
                             elementToUpdate.Revision = "00";
@@ -90,7 +89,7 @@ namespace ExportTC.Model.ElementParcers
             => CommonConstants.GetStatus(innerHtml);
 
         private string ExtractMakeOrBuyFromColumn(string innerHtml)
-            => CommonConstants.GetMakeBuyReplacment(innerHtml);
+            => CommonConstants.GetMakeBuyReplacmentImage(innerHtml);
 
         private string ExtractImageTypeFromColumn(string innerHtml)
             => CommonConstants.GetElementTypePicture(innerHtml);

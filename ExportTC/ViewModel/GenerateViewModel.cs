@@ -4,7 +4,6 @@ using ExportTC.Model;
 using HenconExport;
 using HenconExport.Model.Elemnts;
 using Microsoft.Extensions.DependencyInjection;
-using OfficeOpenXml;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -72,11 +71,9 @@ namespace ExportTC.ViewModel
 
         public void SaveToExcelFile()
         {
-            // Получаем путь к рабочему столу текущего пользователя
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string outputPath = Path.Combine(desktopPath, "Output.xlsm");
 
-            // Извлечение шаблона Excel из ресурсов и копирование его в выходной файл
             using (var resourceStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/HENKON_imp.xlsm")).Stream)
             {
                 using (var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
@@ -85,80 +82,37 @@ namespace ExportTC.ViewModel
                 }
             }
 
-            // Используем созданный файл для записи данных
             using (var excelWriter = new ExcelWriter(outputPath))
             {
                 var worksheet = excelWriter.GetWorksheet(2);
                 int row = 3;
                 var elements = _assembly.Elements;
+
                 foreach (var element in elements)
                 {
+                    if (element.Parent != null)
+                        excelWriter.WriteCell(worksheet, row, 1, element.Parent.Designation);
+
                     excelWriter.WriteCell(worksheet, row, 3, element.Designation);
                     excelWriter.WriteCell(worksheet, row, 4, element.Name);
                     excelWriter.WriteCell(worksheet, row, 5, element.Quantity);
-                    if (_initialData.IsCheckedMakeBuy)
-                        excelWriter.WriteCell(worksheet, row, 2, "Элемент");
+                    excelWriter.WriteCell(worksheet, row, 2, "Элемент");
                     excelWriter.WriteCell(worksheet, row, 10, element.Revision);
-                    //excelWriter.WriteCell(worksheet, row, 11, element.Pos);
                     excelWriter.WriteCell(worksheet, row, 31, element.Costtype);
                     excelWriter.WriteCell(worksheet, row, 32, element.MakeOrBuy);
                     excelWriter.WriteCell(worksheet, row, 33, element.Spare);
                     excelWriter.WriteCell(worksheet, row, 34, element.ItemCodeSupplier);
-                    excelWriter.WriteCell(worksheet, row, 35, element.Type);
-                    excelWriter.WriteCell(worksheet, row, 36, element.AddInfo);
+                    excelWriter.WriteCell(worksheet, row, 35, element.TreeType);
+                    excelWriter.WriteCell(worksheet, row, 6, element.AddInfo);
 
-                    if (element.Parent != null)
-                        excelWriter.WriteCell(worksheet, row, 1, element.Parent.Designation);
-
-                    var fileName = element.FileName;
-                    if (string.IsNullOrEmpty(fileName) || element.Designation == null)
-                    {
-                        excelWriter.WriteCell(worksheet, row, 27, element.Designation + ".SLDASM");
-                        row++;
-                        continue;
-                    }
-
-                    if (fileName.Contains(".pdf") || fileName.Contains(".PDF"))
-                        excelWriter.WriteCell(worksheet, row, 24, element.FileName);
-                    if (fileName.Contains(".zip") || fileName.Contains(".ZIP"))
-                        excelWriter.WriteCell(worksheet, row, 30, element.FileName);
-                    if (fileName.Contains("SLDPRT") || fileName.Contains("sldprt"))
-                        excelWriter.WriteCell(worksheet, row, 26, element.FileName);
-                    if (fileName.Contains("dwg") || fileName.Contains("DWG"))
-                        excelWriter.WriteCell(worksheet, row, 27, element.FileName);
-                    if (fileName.Contains("doc") || fileName.Contains("DOC"))
-                    {
-                        if (fileName.Contains("docx") || fileName.Contains("DOCX"))
-                            excelWriter.WriteCell(worksheet, row, 20, element.FileName);
-                        else
-                        {
-                            excelWriter.WriteCell(worksheet, row, 19, element.FileName);
-                        }
-                    }
-
-                    if (fileName.Contains("jpg") || fileName.Contains("JPG"))
-                        excelWriter.WriteCell(worksheet, row, 29, element.FileName);
-
-                    string searchDirectory = _initialData.BaseDirectory;
-
-                    if (!string.IsNullOrEmpty(element.Designation))
-                    {
-                        // Получаем все файлы с расширением .SLDDRW
-                        var allFiles = Directory.EnumerateFiles(searchDirectory, "*.SLDDRW", SearchOption.AllDirectories);
-                        var foundFiles = Directory.EnumerateFiles(searchDirectory, "*.SLDDRW", SearchOption.AllDirectories)
-                                                  .Where(file => Path.GetFileNameWithoutExtension(file)
-                                                                  .Contains(element.Designation, StringComparison.OrdinalIgnoreCase));
-                        if (foundFiles.Any())
-                        {
-                            // Если найден хотя бы один файл, записываем его в нужную ячейку
-                            excelWriter.WriteCell(worksheet, row, 28, Path.GetFileName(foundFiles.First()));
-                        }
-                        else
-                        {
-             
-                        }
-                    }
-
+                    excelWriter.WriteCell(worksheet, row, 27, element.AssemblyFile);
+                    excelWriter.WriteCell(worksheet, row, 28, element.DrawingFile);
+                    excelWriter.WriteCell(worksheet, row, 24, element.PDFFile);
+                    excelWriter.WriteCell(worksheet, row, 30, element.ZipFile);
+                    excelWriter.WriteCell(worksheet, row, 26, element.PartFile);
+                    excelWriter.WriteCell(worksheet, row, 20, element.DocxFile);
+                    excelWriter.WriteCell(worksheet, row, 19, element.DocFile);
+                    excelWriter.WriteCell(worksheet, row, 29, element.JpegFile);
                     row++;
                 }
                 excelWriter.Save();
