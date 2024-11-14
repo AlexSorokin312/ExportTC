@@ -20,9 +20,9 @@
             <TextBox Grid.Column="1" Width="Auto" Height="Auto" MinWidth="50" Margin="1" HorizontalAlignment="Left" TextAlignment="Center" VerticalAlignment="Center" 
                Style="{StaticResource TextBox}" Text="{Binding Path=DirectoryPath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
 
-            <CheckBox Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Center" Width="Auto" Height="Auto" MinWidth="50" MinHeight="30"
+            <!--<CheckBox Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Center" Width="Auto" Height="Auto" MinWidth="50" MinHeight="30"
           Style="{StaticResource CustomCheckBoxStyle}" Padding="0" Margin="0"
-          IsChecked="{Binding Path=IsChecked, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+          IsChecked="{Binding Path=IsChecked, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=UserControl}}"/>-->
         </Grid>
     </Grid>
 </UserControl>

@@ -31,17 +31,6 @@ namespace ExportTC.Model
         public string? ItemCodeSupplierColumn { get; set; }
         public string? AddInfoColumn { get; set; }
 
-        public bool IsCheckedPosition { get; set; }
-        public bool IsCheckedDesignation { get; set; }
-        public bool IsCheckedQuantity { get; set; }
-        public bool IsCheckedDescription { get; set; }
-        public bool IsCheckedMakeBuy { get; set; }
-        public bool IsCheckedMaterial { get; set; }
-        public bool IsCheckedRevision { get; set; }
-        public bool IsCheckedCosttype { get; set; }
-        public bool IsCheckedSpare { get; set; }
-        public bool IsCheckedItemCodeSupplier { get; set; }
-        public bool IsCheckedAddInfo { get; set; }
         public string PathFiles { get; set; }
         #endregion
 
@@ -51,18 +40,6 @@ namespace ExportTC.Model
             HeaderRow = DefaultReadSettings.HEADER_ROW_NUMBER;
             ProductIDCell = DefaultReadSettings.DESIGNAION_ID_DEFAULT;
             ProductNameCell = DefaultReadSettings.PRODUCT_NAME_DEFAULT;
-
-            IsCheckedDescription = true;
-            IsCheckedDesignation = true;
-            IsCheckedMakeBuy = true;
-            IsCheckedMaterial = false;
-            IsCheckedPosition = false;
-            IsCheckedQuantity = true;
-            IsCheckedRevision = true;
-            IsCheckedCosttype = false;
-            IsCheckedSpare = false;
-            IsCheckedItemCodeSupplier = false;
-            IsCheckedAddInfo = false;
         }
     }
 }
