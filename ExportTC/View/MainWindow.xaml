@@ -9,24 +9,44 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"/>
-            <!-- Фиксированная ширина для левой панели (200 пикселей) -->
             <ColumnDefinition Width="*"/>
-            <!-- Правая панель занимает оставшееся пространство -->
         </Grid.ColumnDefinitions>
 
         <!-- Панель с кнопками меню -->
-        <Grid Grid.Column="0" Background="LightGray" VerticalAlignment="Stretch">
+        <Grid Grid.Column="0" Background="#404040" VerticalAlignment="Stretch">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Button Content="Настройки путей" Height="35" Margin="5" Style="{StaticResource MenuButton}" HorizontalAlignment="Stretch" Click="NavigateToPathPanel"/>
-            <Button Content="Данные в Excel" Height="35" Margin="5" Style="{StaticResource MenuButton}" Grid.Row="1" HorizontalAlignment="Stretch" Click="NavogateToExcelButton"/>
-            <Button Content="Формирование файла" Height="35" Margin="5" Style="{StaticResource MenuButton}" Grid.Row="2" HorizontalAlignment="Stretch" Click="NavigateToGeneratePanel" />
+            <Button Height="35" Style="{StaticResource MenuButton}" HorizontalAlignment="Stretch" Click="NavigateToPathPanel">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Настройки путей"/>
+                </StackPanel>
+            </Button>
+
+            <Button Height="35" Style="{StaticResource MenuButton}" Grid.Row="1" HorizontalAlignment="Stretch" Click="NavogateToExcelButton">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Данные в Excel"/>
+                </StackPanel>
+            </Button>
+
+            <Button Height="35" Style="{StaticResource MenuButton}" Grid.Row="2" HorizontalAlignment="Stretch" Click="NavigateToGeneratePanel">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Формирование файла"/>
+                </StackPanel>
+            </Button>
+
+            <!-- Картинка с логотипом -->
+            <Image Source="/ExportTC;component/Resources/topBI.png" 
+                   Grid.Row="4" 
+                   Margin="0,20,0,20" 
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Bottom" 
+                   Width="180" />
         </Grid>
 
         <!-- Область для сменяющегося контента -->
@@ -35,5 +55,3 @@
         </ContentControl>
     </Grid>
 </Window>
- 
-    

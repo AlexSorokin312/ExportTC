@@ -20,15 +20,39 @@
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
+            <RowDefinition Height="0.13*"/>
+            <RowDefinition Height="0.05*"/>
             <RowDefinition Height="0.9*"/>
             <RowDefinition Height="0.08*"/>
         </Grid.RowDefinitions>
         
-        <TreeView Grid.Row="0" ItemsSource="{Binding RootElements}" Grid.ColumnSpan="3">
+        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" VerticalAlignment="Center">
+            <Label FontSize="16" FontWeight="Bold" Padding="0" Margin="5,10,5,20" Foreground="#404040">
+                Структура изделия
+            </Label>
+            <Image Source="/ExportTC;component/Resources/tooltip.png" Width="16" Height="16" Margin="5,10,0,20" ToolTip="Структура дерева полученная из BOM и Htm файлов" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Background="{DynamicResource MainColor}">
+            <Border BorderBrush="White" BorderThickness="1" VerticalAlignment="Stretch">
+                <TextBlock Foreground="{DynamicResource SecondColor}" Text="Обозначение" FontWeight="Bold" Width="100" Margin="55,0,0,0"/>
+            </Border>
+            <Border BorderBrush="White" BorderThickness="1" VerticalAlignment="Stretch">
+                <TextBlock Foreground="{DynamicResource SecondColor}"  Text="Кол." FontWeight="Bold" Width="40" Margin="20,0,0,0"/>
+            </Border>
+            <Border BorderBrush="White" BorderThickness="1" VerticalAlignment="Stretch">
+                <TextBlock Foreground="{DynamicResource SecondColor}"  Text="Тип" FontWeight="Bold" Width="40" Margin="20,0,0,0"/>
+            </Border>
+            <Border BorderBrush="White" BorderThickness="1" VerticalAlignment="Stretch">
+                <TextBlock Text="Ревизия" Foreground="{DynamicResource SecondColor}" Width="100" FontWeight="Bold" Margin="10,0,0,0"/>
+            </Border>
+        </StackPanel>
+
+        <TreeView Grid.Row="2" ItemsSource="{Binding RootElements}" Grid.ColumnSpan="3">
             <!-- Применяем стиль через ItemContainerStyle -->
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem">
-                    <Setter Property="Foreground" Value="Black"/>
+                    <Setter Property="Foreground" Value="{DynamicResource MainColor}"/>
                     <Setter Property="FontSize" Value="14"/>
                     <Setter Property="FontFamily" Value="Arial"/>
                     <Setter Property="Padding" Value="5,2"/>
@@ -37,32 +61,33 @@
                     <Setter Property="BorderThickness" Value="0"/>
                     <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="LightGray"/>
+                            <Setter Property="Background" Value="#F0F0F0"/>
+                            <Setter Property="Cursor" Value="Hand"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="DarkGray"/>
+                            <Setter Property="Background" Value="#3A7CA5"/>
                             <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
                         </Trigger>
                     </Style.Triggers>
                 </Style>
             </TreeView.ItemContainerStyle>
 
-            <!-- Шаблон элементов в TreeView -->
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="{Binding DrawingIcon, Converter={StaticResource TypeToImageConverter}}" Width="16" Height="16" Margin="5"/>
-                        <Image Source="{Binding ProductStatus, Converter={StaticResource ProductStatusToImageConverter}}" Width="16" Height="16" Margin="5"/>
                         <TextBlock Text="{Binding Designation}" Margin="5,0,0,0"/>
-                        <TextBlock Text="{Binding Quantity}" Margin="20,0,0,0" Foreground="Blue"/>
-                        <TextBlock Text="{Binding MakeOrBuy}" Margin="20,0,0,0" Foreground="Green"/>
-                        <TextBlock Text="{Binding Revision}" Margin="20,0,0,0" Foreground="Purple"/>
+                        <TextBlock Text="{Binding Quantity}" Margin="58,0,0,0" Foreground="#4A4A4A"/>
+                        <TextBlock Text="{Binding MakeOrBuy}" Margin="37,0,0,0" Foreground="#6A6A6A"/>
+                        <TextBlock Text="{Binding Revision}" Margin="42,0,0,0" Foreground="#8A8A8A"/>
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
+
         </TreeView>
 
-        <ComboBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Width="250" Height="30"
+        <ComboBox Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Width="250" Height="30"
           ItemsSource="{Binding ComboBoxItems}" 
           SelectedItem="{Binding SelectedComboBoxItem}"
           Style="{StaticResource DarkComboBoxStyle}"
@@ -74,7 +99,7 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
 
-        <Button Content="Старт" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right" Height="30" Margin="0,0,15,0" Command="{Binding BrowseDirectoryCommand}" Style="{StaticResource StartButtonStyle}" Width="150"/>
+        <Button Content="Старт" Grid.Row="4" Grid.Column="2" HorizontalAlignment="Right" Height="30" Margin="0,0,15,0" Command="{Binding BrowseDirectoryCommand}" Style="{StaticResource BrowseButtonStyle}" Width="150"/>
 
     </Grid>
 </UserControl>

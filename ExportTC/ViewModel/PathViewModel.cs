@@ -22,74 +22,137 @@ namespace ExportTC.ViewModel
         public ICommand BrowseExcelFileCommand { get; }
         public ICommand BrowseHtmFileCommand { get; }
 
-        private readonly InitialData _initialData;
-        private readonly IFileSearchService _fileSearchService;
-        private readonly IFileDialogService _fileDialogService;
+        private readonly Lazy<InitialData> _initialData;
+        private readonly Lazy<IFileSearchService> _fileSearchService;
+        private readonly Lazy<IFileDialogService> _fileDialogService;
 
         public PathViewModel()
         {
-            _initialData = App.ServiceProvider.GetService<InitialData>();
-            _fileSearchService = App.ServiceProvider.GetService<IFileSearchService>();
-            _fileDialogService = App.ServiceProvider.GetService<IFileDialogService>();
+            try
+            {
+                _initialData = new Lazy<InitialData>(() =>
+                    App.ServiceProvider.GetService<InitialData>()
+                    ?? throw new InvalidOperationException(ErrorMessages.InitialDataServiceError));
 
-            _directoryPath = _initialData.BaseDirectory;
-            _excelFilePath = _initialData.ExcelFile;
-            _htmFilePath = _initialData.HtmlFile;
+                _fileSearchService = new Lazy<IFileSearchService>(() =>
+                    App.ServiceProvider.GetService<IFileSearchService>()
+                    ?? throw new InvalidOperationException(ErrorMessages.FileSearchServiceError));
 
-            BrowseDirectoryCommand = new RelayCommand(OpenDirectoryDialog);
-            BrowseExcelFileCommand = new RelayCommand(OpenExcelFileDialog);
-            BrowseHtmFileCommand = new RelayCommand(OpenHtmFileDialog);
+                _fileDialogService = new Lazy<IFileDialogService>(() =>
+                    App.ServiceProvider.GetService<IFileDialogService>()
+                    ?? throw new InvalidOperationException(ErrorMessages.FileDialogServiceError));
+
+                _directoryPath = _initialData.Value.BaseDirectory;
+                _excelFilePath = _initialData.Value.ExcelFile;
+                _htmFilePath = _initialData.Value.HtmlFile;
+
+                BrowseDirectoryCommand = new RelayCommand(OpenDirectoryDialog);
+                BrowseExcelFileCommand = new RelayCommand(OpenExcelFileDialog);
+                BrowseHtmFileCommand = new RelayCommand(OpenHtmFileDialog);
+            }
+            catch (Exception ex)
+            {
+                AppLogger.LogFatal(ex, ErrorMessages.ViewModelInitializationError);
+                throw;
+            }
         }
 
         partial void OnDirectoryPathChanged(string value)
         {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentNullException(nameof(value), ErrorMessages.InvalidDirectoryPath);
 
-            ExcelFilePath = _fileSearchService.FindFirstExcelFile(value);
-            HtmFilePath = _fileSearchService.FindHtmlFile(value);
-
-            _initialData.BaseDirectory = value;
-
+                ExcelFilePath = _fileSearchService.Value.FindFirstExcelFile(value);
+                HtmFilePath = _fileSearchService.Value.FindHtmlFile(value);
+                _initialData.Value.BaseDirectory = value;
+            }
+            catch (Exception ex)
+            {
+                AppLogger.LogError(ex, ErrorMessages.DirectoryPathChangeError);
+            }
         }
 
         partial void OnExcelFilePathChanged(string value)
         {
-            _initialData.ExcelFile = value;
-            var _initialDataSetter = App.ServiceProvider.GetService<IInitialDataSetter>();
-            if (!string.IsNullOrWhiteSpace(value))
+            try
             {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentNullException(nameof(value), ErrorMessages.InvalidExcelFilePath);
+
+                _initialData.Value.ExcelFile = value;
+                var _initialDataSetter = App.ServiceProvider.GetService<IInitialDataSetter>()
+                    ?? throw new InvalidOperationException(ErrorMessages.InitialDataSetterServiceError);
+
                 _initialDataSetter.PrepareData(value);
+            }
+            catch (Exception ex)
+            {
+                AppLogger.LogError(ex, ErrorMessages.ExcelFilePathChangeError);
             }
         }
 
         partial void OnHtmFilePathChanged(string value)
         {
-            _initialData.HtmlFile = value;
+            try
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentNullException(nameof(value), ErrorMessages.InvalidHtmFilePath);
+
+                _initialData.Value.HtmlFile = value;
+            }
+            catch (Exception ex)
+            {
+                AppLogger.LogError(ex, ErrorMessages.HtmlFilePathChangeError);
+            }
         }
 
         private void OpenExcelFileDialog()
         {
-            var selectedFile = _fileDialogService.OpenExcelFile();
-            if (selectedFile != null)
+            try
             {
-                ExcelFilePath = selectedFile;
+                var selectedFile = _fileDialogService.Value.OpenExcelFile();
+                if (!string.IsNullOrWhiteSpace(selectedFile))
+                {
+                    ExcelFilePath = selectedFile;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.LogError(ex, ErrorMessages.ExcelFileDialogError);
             }
         }
 
         private void OpenHtmFileDialog()
         {
-            var selectedFile = _fileDialogService.OpenHtmlFile();
-            if (selectedFile != null)
+            try
             {
-                HtmFilePath = selectedFile;
+                var selectedFile = _fileDialogService.Value.OpenHtmlFile();
+                if (!string.IsNullOrWhiteSpace(selectedFile))
+                {
+                    HtmFilePath = selectedFile;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.LogError(ex, ErrorMessages.HtmFileDialogError);
             }
         }
 
         private void OpenDirectoryDialog()
         {
-            var selectedDirectory = _fileDialogService.OpenDirectory();
-            if (selectedDirectory != null)
+            try
             {
-                DirectoryPath = selectedDirectory;
+                var selectedDirectory = _fileDialogService.Value.OpenDirectory();
+                if (!string.IsNullOrWhiteSpace(selectedDirectory))
+                {
+                    DirectoryPath = selectedDirectory;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.LogError(ex, ErrorMessages.DirectoryDialogError);
             }
         }
     }

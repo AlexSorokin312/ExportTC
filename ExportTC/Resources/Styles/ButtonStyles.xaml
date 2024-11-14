@@ -3,50 +3,56 @@
 
     <!-- Кнопки меню -->
     <Style x:Key="MenuButton" TargetType="Button">
-        <Setter Property="Background" Value="DarkGray"/>
-        <Setter Property="Foreground" Value="Black"/>
+        <Setter Property="Background" Value="{DynamicResource  MainColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource  SecondColor}"/>
         <Setter Property="FontSize" Value="14"/>
-        <Setter Property="FontFamily" Value="Arial"/>
-        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontFamily" Value="{DynamicResource  AppFont}"/>
+        <Setter Property="FontWeight" Value="Normal"/>
         <Setter Property="Padding" Value="10,5"/>
-        <Setter Property="BorderBrush" Value="White"/>
-        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <!-- Убираем внешние границы -->
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}" 
-                            BorderBrush="{TemplateBinding BorderBrush}" 
-                            BorderThickness="{TemplateBinding BorderThickness}" 
+                    <Grid>
+                        <!-- Кнопка -->
+                        <Border Background="{TemplateBinding Background}" 
                             CornerRadius="2">
-                        <ContentPresenter HorizontalAlignment="Center" 
+                            <ContentPresenter HorizontalAlignment="Center" 
                                           VerticalAlignment="Center" />
-                    </Border>
+                        </Border>
+                        <!-- Разделительная линия -->
+                        <Border BorderBrush="White" BorderThickness="0,0,0,1" 
+                            VerticalAlignment="Bottom" 
+                            HorizontalAlignment="Stretch"/>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="LightGray"/>
+                <Setter Property="Background" Value="White"/>
                 <Setter Property="FontSize" Value="15.5"/>
-                <Setter Property="Foreground" Value="Black"/>
-                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="#404040"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
             </Trigger>
         </Style.Triggers>
     </Style>
 
+
     <!-- Стиль для кнопки "Обзор" -->
     <Style x:Key="BrowseButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="LightGray"/>
-        <Setter Property="Foreground" Value="Black"/>
+        <Setter Property="Background" Value="{DynamicResource MainColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource SecondColor}"/>
         <Setter Property="FontSize" Value="13"/>
-        <Setter Property="FontFamily" Value="Arial"/>
+        <Setter Property="FontFamily" Value="{DynamicResource AppFont}"/>
         <Setter Property="FontWeight" Value="Normal"/>
         <Setter Property="Padding" Value="5,2"/>
         <Setter Property="Width" Value="70"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="BorderBrush" Value="DarkGray"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value=".8"/>
         <Setter Property="Cursor" Value="Hand"/>
 
         <Setter Property="Template">
@@ -55,7 +61,7 @@
                     <Border Background="{TemplateBinding Background}" 
                             BorderBrush="{TemplateBinding BorderBrush}" 
                             BorderThickness="{TemplateBinding BorderThickness}" 
-                            CornerRadius="3">
+                            CornerRadius="2">
                         <ContentPresenter HorizontalAlignment="Center" 
                                           VerticalAlignment="Center" />
                     </Border>

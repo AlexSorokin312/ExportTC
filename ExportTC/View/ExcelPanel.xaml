@@ -34,15 +34,16 @@
         </Grid.RowDefinitions>
 
         <!-- Заголовок -->
-        <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="4" 
-               Style="{StaticResource Label1}" 
-               Margin="5,0,0,15" Padding="0" 
-               VerticalAlignment="Bottom">
-            Настройка исходных данных из Excel
-        </Label>
+        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" VerticalAlignment="Center">
+            <Label FontSize="16" FontWeight="Bold" Padding="0" Margin="5,10,5,20" Foreground="#404040">
+                Настройка исходных данных
+            </Label>
+            <Image Source="/ExportTC;component/Resources/tooltip.png" Width="16" Height="16" Margin="5,10,0,20" ToolTip="Определить в каких столбцах BOM-файла находятся данные необходимые для импорта в TC" />
+        </StackPanel>
 
         <!-- Группа для строк ввода -->
         <GroupBox Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" 
+          Background="{DynamicResource StackBackGroundColor}"
           Header="Настройки строк:" 
           Margin="0,5,0,0">
             <Grid Margin="5">
@@ -66,7 +67,7 @@
 
                 <!-- Номер столбца с ID изделия -->
                 <Label Grid.Row="0" 
-               Style="{StaticResource DescriptionLabel}" 
+               Style="{StaticResource ExcelLabel}" 
                VerticalAlignment="Center">
                     Ячейка с ID изделия:
                 </Label>
@@ -79,7 +80,7 @@
 
                 <!-- Номер столбца с наименованием изделия -->
                 <Label Grid.Row="1" 
-               Style="{StaticResource DescriptionLabel}" 
+               Style="{StaticResource ExcelLabel}" 
                VerticalAlignment="Center">
                     Ячейка с наименованием изделия:
                 </Label>
@@ -92,7 +93,7 @@
 
                 <!-- Номер стартовой строки -->
                 <Label Grid.Row="2" 
-               Style="{StaticResource DescriptionLabel}" 
+               Style="{StaticResource ExcelLabel}" 
                VerticalAlignment="Center">
                     Номер стартовой строки:
                 </Label>
@@ -105,7 +106,7 @@
 
                 <!-- Общее количество строк -->
                 <Label Grid.Row="3" 
-               Style="{StaticResource DescriptionLabel}" 
+               Style="{StaticResource ExcelLabel}" 
                VerticalAlignment="Center">
                     Номер последней строки (опционально):
                 </Label>
@@ -122,6 +123,8 @@
         <!-- Custom Excel Rows -->
         <GroupBox Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="4" 
           Header="Столбцы, содержащие данные:" 
+                  Background="{DynamicResource StackBackGroundColor}"
+                  Padding="0"
           Margin="0,5,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>

@@ -2,17 +2,18 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Style x:Key="TextBox" TargetType="TextBox">
-        <Setter Property="Background" Value="WhiteSmoke"/>
+        <Setter Property="Background" Value="{DynamicResource SecondColor}"/>
         <!-- Цвет фона -->
-        <Setter Property="Foreground" Value="Black"/>
+        <Setter Property="Foreground" Value="{DynamicResource MainColor}"/>
         <!-- Цвет текста -->
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="FontFamily" Value="Arial"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="{DynamicResource AppFont}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="TextAlignment" Value="Center"/>
         <Setter Property="Padding" Value="10,5"/>
         <Setter Property="BorderBrush" Value="DarkGray"/>
         <!-- Цвет границы -->
-        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="BorderThickness" Value="1.5"/>
         <!-- Толщина границы -->
 
         <!-- Устанавливаем шаблон управления для скругления углов -->
@@ -22,7 +23,7 @@
                     <Border Background="{TemplateBinding Background}" 
                         BorderBrush="{TemplateBinding BorderBrush}" 
                         BorderThickness="{TemplateBinding BorderThickness}" 
-                        CornerRadius="5">
+                        CornerRadius="3.5">
                         <!-- Скругление углов -->
                         <ScrollViewer x:Name="PART_ContentHost"/>
                     </Border>
@@ -51,6 +52,47 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+
+    <Style x:Key="PathTextBox" TargetType="TextBox">
+        <Setter Property="Background" Value="{DynamicResource SecondColor}"/>
+        <!-- Цвет фона -->
+        <Setter Property="Foreground" Value="{DynamicResource MainColor}"/>
+        <!-- Цвет текста -->
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontFamily" Value="{DynamicResource AppFont}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="BorderBrush" Value="DarkGray"/>
+        <!-- Цвет границы -->
+        <Setter Property="BorderThickness" Value="1"/>
+        <!-- Толщина границы -->
+
+        <!-- Устанавливаем шаблон управления для скругления углов -->
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border Background="{TemplateBinding Background}" 
+                        BorderBrush="{TemplateBinding BorderBrush}" 
+                        BorderThickness="{TemplateBinding BorderThickness}" 
+                        CornerRadius="3">
+                        <!-- Скругление углов -->
+                        <ScrollViewer x:Name="PART_ContentHost"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="TreeTextBlock" TargetType="TextBlock">
+        <Setter Property="Background" Value="{DynamicResource SecondColor}"/>
+        <!-- Цвет фона -->
+        <Setter Property="Foreground" Value="{DynamicResource MainColor}"/>
+        <!-- Цвет текста -->
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontFamily" Value="{DynamicResource AppFont}"/>
+        <Setter Property="Padding" Value="0"/>
     </Style>
 
 </ResourceDictionary>
