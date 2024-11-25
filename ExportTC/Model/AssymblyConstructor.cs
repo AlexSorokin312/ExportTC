@@ -1,5 +1,4 @@
-﻿using ExportTC.Constants;
-using ExportTC.Model.ElementParcers;
+﻿using ExportTC.Model.ElementParcers;
 using ExportTC.Model.Factories;
 using HenconExport.Model.Elemnts;
 using System.IO;
@@ -166,83 +165,6 @@ namespace ExportTC.Model
                     element.DrawingFile = fileName;
                 }
             }
-        }
-    }
-
-    public class ParametersDefinder
-    {
-        public string DefineElementType(Element element)
-        {
-            if (element.DrawingIcon == ElementConstants.DETAIL)
-                return ElementConstants.DETAIL;
-            if (element.DrawingIcon == ElementConstants.ASSEMBLY)
-                return ElementConstants.ASSEMBLY;
-
-            return ElementConstants.DRAFT;
-        }
-
-        public string DefineRootElementAssembly(Element element)
-        {
-            return string.Format("{0}.{1}", element.Designation, "SLDASM");
-        }
-
-        public string DefineSpare(string spare)
-        {
-            if (spare == null)
-                return string.Empty;
-
-            spare = spare.Replace(';', ' ');
-
-            if (spare.Contains("N/A"))
-                return string.Empty;
-            if (spare.Contains("M M"))
-                return "M";
-
-            return spare;
-        }
-
-        public string DefineMakeBuy(string makeBuy)
-        {
-            makeBuy = CommonConstants.GetMakeBuyReplacmentText(makeBuy);
-            return makeBuy;
-        }
-
-        public void DefineFiles(Element element)
-        {
-            var fileName = element.FileName;
-            if (fileName == null)
-            {
-                element.AssemblyFile  = element.Designation + ".SLDASM";
-                return;
-            }
-    
-
-            if (fileName.Contains(".pdf") || fileName.Contains(".PDF"))
-                element.PDFFile = fileName;
-                element.TCType = "PDF";
-
-
-            if (fileName.Contains(".zip") || fileName.Contains(".ZIP"))
-                element.ZipFile = fileName;
-                element.TCType = "ZIP";
-
-            if (fileName.Contains("SLDPRT") || fileName.Contains("sldprt"))
-                element.PartFile = fileName;
-
-            if (fileName.Contains("dwg") || fileName.Contains("DWG"))
-                element.DrawingFile = fileName;
-
-            if (fileName.Contains("doc") || fileName.Contains("DOC"))
-            {
-                if (fileName.Contains("docx") || fileName.Contains("DOCX"))
-                    element.DocxFile = fileName;
-                else
-                    element.DocFile = fileName;
-            }
-
-            if (fileName.Contains("jpg") || fileName.Contains("JPG"))
-                element.JpegFile = fileName;
-
         }
     }
 }
