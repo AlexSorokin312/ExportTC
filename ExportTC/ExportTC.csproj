@@ -16,7 +16,6 @@
     <None Remove="Resources\folders.png" />
     <None Remove="Resources\frozen.png" />
     <None Remove="Resources\HENKON.xlsm" />
-    <None Remove="Resources\HENKON_imp.xlsm" />
     <None Remove="Resources\ic_doc.png" />
     <None Remove="Resources\ic_gif.png" />
     <None Remove="Resources\ic_pdf.png" />
@@ -35,7 +34,6 @@
   <ItemGroup>
     <Resource Include="Resources\data.png" />
     <Resource Include="Resources\folders.png" />
-    <Resource Include="Resources\HENKON.xlsm" />
   </ItemGroup>
 
   <ItemGroup>
@@ -60,7 +58,7 @@
     <Resource Include="Resources\checkedin.png" />
     <Resource Include="Resources\checkedout.png" />
     <Resource Include="Resources\frozen.png" />
-    <Resource Include="Resources\HENKON_imp.xlsm" />
+    <Resource Include="Resources\HENKON.xlsm" />
     <Resource Include="Resources\ic_doc.png" />
     <Resource Include="Resources\ic_gif.png" />
     <Resource Include="Resources\ic_pdf.png" />

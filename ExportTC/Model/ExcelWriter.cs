@@ -31,12 +31,12 @@ namespace HenconExport
                 throw new ArgumentOutOfRangeException(nameof(index), "Индекс листа вне диапазона.");
             }
 
-            return _package.Workbook.Worksheets[index - 1]; // Индексы начинаются с 0
+            return _package.Workbook.Worksheets[index - 1]; 
         }
 
         public ExcelWorksheet GetWorksheet(string worksheetName)
         {
-            return _package.Workbook.Worksheets[worksheetName]; // Индексы начинаются с 0
+            return _package.Workbook.Worksheets[worksheetName]; 
         }
 
         public void Dispose()

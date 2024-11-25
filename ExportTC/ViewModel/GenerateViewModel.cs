@@ -4,6 +4,7 @@ using ExportTC.Model;
 using HenconExport;
 using HenconExport.Model.Elemnts;
 using Microsoft.Extensions.DependencyInjection;
+using OfficeOpenXml;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -26,98 +27,175 @@ namespace ExportTC.ViewModel
             set => SetProperty(ref _comboBoxItems, value);
         }
 
+        private double _progressValue;
+        public double ProgressValue
+        {
+            get => _progressValue;
+            set => SetProperty(ref _progressValue, value);
+        }
+
+        private bool _isProgressVisible;
+        public bool IsProgressVisible
+        {
+            get => _isProgressVisible;
+            set => SetProperty(ref _isProgressVisible, value);
+        }
+
+
         private string _selectedComboBoxItem;
         public string SelectedComboBoxItem
         {
             get => _selectedComboBoxItem;
             set => SetProperty(ref _selectedComboBoxItem, value);
         }
+        public ICommand StartProcessCommand { get; }
 
         public GenerateViewModel()
         {
-            _initialData = App.ServiceProvider.GetService<InitialData>();
-            _fileSearchService = App.ServiceProvider.GetService<IFileSearchService>();
-            ComboBoxItems = new ObservableCollection<string> { 
-                "Структура изделия (с матрицей)",
-                "Структура изделия с заменами",
-                "Структура (наборы данных)" };
+            try
+            {
+                _initialData = App.ServiceProvider.GetService<InitialData>()
+                               ?? throw new InvalidOperationException(ErrorMessages.InitialDataServiceError);
 
-            SelectedComboBoxItem = ComboBoxItems[1];
+                _fileSearchService = App.ServiceProvider.GetService<IFileSearchService>()
+                                   ?? throw new InvalidOperationException(ErrorMessages.FileSearchServiceError);
 
-            DisplayTree();
-            BrowseDirectoryCommand = new RelayCommand(SaveToExcelFile);
+                ComboBoxItems = new ObservableCollection<string> {
+            "Структура изделия (с матрицей)",
+            "Структура изделия с заменами",
+            "Структура (наборы данных)" };
+
+                SelectedComboBoxItem = ComboBoxItems[1];
+
+                DisplayTree();
+                StartProcessCommand = new AsyncRelayCommand(SaveToExcelFileAsync);
+
+                AppLogger.LogInformation("GenerateViewModel initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                AppLogger.LogFatal(ex, ErrorMessages.ViewModelInitializationError);
+                throw;
+            }
         }
 
-        public ICommand BrowseDirectoryCommand { get; }
 
         public void DisplayTree()
         {
-            var assemblyFiller = App.ServiceProvider.GetService<AssemblyConstructor>();
-
             try
             {
+                var assemblyFiller = App.ServiceProvider.GetService<AssemblyConstructor>()
+                                   ?? throw new InvalidOperationException(ErrorMessages.ViewModelInitializationError);
+
                 _assembly = assemblyFiller.GetAssembly(_initialData);
                 var rootElements = _assembly.GetRootElements();
+                RootElements.Clear();
                 foreach (var element in rootElements)
                 {
                     RootElements.Add(element);
                 }
+
+                AppLogger.LogInformation("Tree successfully displayed.");
             }
             catch (Exception ex)
             {
-
+                AppLogger.LogError(ex, ErrorMessages.GenerateViewModelInitializationError);
+                MessageBox.Show("An error occurred while displaying the tree. Check logs for details.",
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        public void SaveToExcelFile()
+        public async Task SaveToExcelFileAsync()
         {
+            IsProgressVisible = true;
+            ProgressValue = 0;
+
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string outputPath = Path.Combine(desktopPath, "Output.xlsm");
 
-            using (var resourceStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/HENKON_imp.xlsm")).Stream)
+            // Копируем ресурс в новый файл
+            try
             {
-                using (var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
+                using (var resourceStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/HENKON.xlsm")).Stream)
                 {
-                    resourceStream.CopyTo(fileStream);
+                    using (var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
+                    {
+                        await resourceStream.CopyToAsync(fileStream);
+                    }
                 }
             }
-
-            using (var excelWriter = new ExcelWriter(outputPath))
+            catch (IOException ex)
             {
-                var worksheet = excelWriter.GetWorksheet(2);
-                int row = 3;
-                var elements = _assembly.Elements;
-
-                foreach (var element in elements)
-                {
-                    if (element.Parent != null)
-                        excelWriter.WriteCell(worksheet, row, 1, element.Parent.Designation);
-
-                    excelWriter.WriteCell(worksheet, row, 3, element.Designation);
-                    excelWriter.WriteCell(worksheet, row, 4, element.Name);
-                    excelWriter.WriteCell(worksheet, row, 5, element.Quantity);
-                    excelWriter.WriteCell(worksheet, row, 2, "Элемент");
-                    excelWriter.WriteCell(worksheet, row, 10, element.Revision);
-                    excelWriter.WriteCell(worksheet, row, 31, element.Costtype);
-                    excelWriter.WriteCell(worksheet, row, 32, element.MakeOrBuy);
-                    excelWriter.WriteCell(worksheet, row, 33, element.Spare);
-                    excelWriter.WriteCell(worksheet, row, 34, element.ItemCodeSupplier);
-                    excelWriter.WriteCell(worksheet, row, 35, element.TreeType);
-                    excelWriter.WriteCell(worksheet, row, 6, element.AddInfo);
-
-                    excelWriter.WriteCell(worksheet, row, 27, element.AssemblyFile);
-                    excelWriter.WriteCell(worksheet, row, 28, element.DrawingFile);
-                    excelWriter.WriteCell(worksheet, row, 24, element.PDFFile);
-                    excelWriter.WriteCell(worksheet, row, 30, element.ZipFile);
-                    excelWriter.WriteCell(worksheet, row, 26, element.PartFile);
-                    excelWriter.WriteCell(worksheet, row, 20, element.DocxFile);
-                    excelWriter.WriteCell(worksheet, row, 19, element.DocFile);
-                    excelWriter.WriteCell(worksheet, row, 29, element.JpegFile);
-                    row++;
-                }
-                excelWriter.Save();
-                Process.Start(new ProcessStartInfo(outputPath) { UseShellExecute = true });
+                // Обработка ошибки, если файл занят другим процессом (например, открыт в Excel)
+                AppLogger.LogError(ex,ErrorMessages.ErrorExcelFIleIsBusy);
+                ShowErrorMessage("Файл Excel уже открыт. Пожалуйста, закройте его и попробуйте снова.");
+                return;
             }
+
+            // Записываем данные
+            try
+            {
+                using (var excelWriter = new ExcelWriter(outputPath))
+                {
+                    var worksheet = excelWriter.GetWorksheet(2);
+                    int row = 3;
+                    var elements = _assembly.Elements;
+                    int totalElements = elements.Count;
+
+                    for (int i = 0; i < totalElements; i++)
+                    {
+                        WriteElementToExcel(excelWriter, worksheet, row, elements[i]);
+                        row++;
+
+                        // Обновляем прогресс
+                        ProgressValue = (i + 1) * 100.0 / totalElements;
+                    }
+
+                    excelWriter.Save();
+                }
+            }
+            catch (IOException ex)
+            {
+                // Обработка ошибки, если файл занят другим процессом (например, открыт в Excel)
+                AppLogger.LogError(ex, "Ошибка при записи в файл Excel. Возможно, файл занят другим процессом.");
+                ShowErrorMessage("Файл Excel уже открыт. Пожалуйста, закройте его и попробуйте снова.");
+                return;
+            }
+
+            Process.Start(new ProcessStartInfo(outputPath) { UseShellExecute = true });
+        }
+
+        private void ShowErrorMessage(string message)
+        {
+            // Отобразить сообщение об ошибке пользователю, например, через MessageBox или иной UI элемент
+            MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+
+        private void WriteElementToExcel(ExcelWriter excelWriter, ExcelWorksheet worksheet, int row, Element element)
+        {
+            if (element.Parent != null)
+                excelWriter.WriteCell(worksheet, row, 1, element.Parent.Designation);
+            excelWriter.WriteCell(worksheet, row, 2, "Элемент");
+            excelWriter.WriteCell(worksheet, row, 3, element.Designation);
+            excelWriter.WriteCell(worksheet, row, 4, element.Designation);
+            excelWriter.WriteCell(worksheet, row, 5, element.Quantity);
+            excelWriter.WriteCell(worksheet, row, 6, element.Name);
+            excelWriter.WriteCell(worksheet, row, 10, element.Revision);
+            excelWriter.WriteCell(worksheet, row, 19, element.DocFile);
+            excelWriter.WriteCell(worksheet, row, 20, element.DocxFile);
+            excelWriter.WriteCell(worksheet, row, 24, element.PDFFile);
+            excelWriter.WriteCell(worksheet, row, 26, element.PartFile);
+            excelWriter.WriteCell(worksheet, row, 27, element.AssemblyFile);
+            excelWriter.WriteCell(worksheet, row, 28, element.EADrawingFile);
+            excelWriter.WriteCell(worksheet, row, 29, element.REDrawingFile);
+            excelWriter.WriteCell(worksheet, row, 30, element.JpegFile);
+            excelWriter.WriteCell(worksheet, row, 31, element.ZipFile);
+            excelWriter.WriteCell(worksheet, row, 32, element.Costtype);
+            excelWriter.WriteCell(worksheet, row, 33, element.MakeOrBuy);
+            excelWriter.WriteCell(worksheet, row, 34, element.Spare);
+            excelWriter.WriteCell(worksheet, row, 35, element.ItemCodeSupplier);
+            excelWriter.WriteCell(worksheet, row, 36, element.TreeType);
         }
     }
 }

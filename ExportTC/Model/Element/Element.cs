@@ -14,6 +14,15 @@ namespace HenconExport.Model.Elemnts
         public string? TCType { get; set; }
         public string? TreeType { get; set; }
         public string? DrawingFile { get; set; }
+
+        public string? EADrawingFile => !string.IsNullOrEmpty(DrawingFile)
+            ? $"EA{DrawingFile}"
+            : $"EA{Designation}.SLDDRW";
+
+        public string? REDrawingFile => !string.IsNullOrEmpty(DrawingFile)
+            ? $"RE{DrawingFile}"
+            : $"RE{Designation}.SLDDRW";
+
         public string? ZipFile { get; set; }
         public string? PartFile { get; set; }
         public string? AssemblyFile { get; set; }
@@ -26,7 +35,8 @@ namespace HenconExport.Model.Elemnts
         public Element Parent { get; set; }
         public List<Element>? Children { get; set; } = new List<Element>();
 
-        // Новые поля
+
+
         public string? ItemCodeSupplier { get; set; }
         public string? Costtype { get; set; }
         public string? Spare { get; set; }

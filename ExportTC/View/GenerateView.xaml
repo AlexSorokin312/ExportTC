@@ -10,6 +10,7 @@
     <UserControl.Resources>
         <converter:TypeToImageConverter x:Key="TypeToImageConverter"/>
         <converter:ProductStatusToImageConverter x:Key="ProductStatusToImageConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </UserControl.Resources>
 
     <Grid>
@@ -99,7 +100,14 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
 
-        <Button Content="Старт" Grid.Row="4" Grid.Column="2" HorizontalAlignment="Right" Height="30" Margin="0,0,15,0" Command="{Binding BrowseDirectoryCommand}" Style="{StaticResource BrowseButtonStyle}" Width="150"/>
+        <Button Content="Старт" Grid.Row="4" Grid.Column="2" HorizontalAlignment="Right" Height="30" Margin="0,0,15,0" Command="{Binding StartProcessCommand}" Style="{StaticResource BrowseButtonStyle}" Width="150"/>
 
+        <ProgressBar Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+             Height="20" Margin="10,0,10,10"
+             Minimum="0" Maximum="100"
+             VerticalAlignment="Bottom"
+             Value="{Binding ProgressValue, Mode=OneWay}" 
+             Visibility="{Binding IsProgressVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        
     </Grid>
 </UserControl>

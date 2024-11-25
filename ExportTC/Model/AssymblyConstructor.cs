@@ -113,7 +113,10 @@ namespace ExportTC.Model
             foreach (var element in htmlElements)
             {
                 if (element.Parent == null)
+                {
+                    element.AssemblyFile = _parametersDefinder.DefineRootElementAssembly(element);
                     continue;
+                }
                 var excelElement = excelElements.FirstOrDefault(x => x.Designation == element.Designation && x.Parent.Designation == element.Parent.Designation);
                 if (excelElement != null)
                 {
@@ -131,8 +134,9 @@ namespace ExportTC.Model
 
                element.TreeType = _parametersDefinder.DefineElementType(element);
                 _parametersDefinder.DefineFiles(element);
-
             }
+
+
         }
 
         private void MatchQuantity(List<Element> htmlElements, List<Element> excelElements)
@@ -177,6 +181,11 @@ namespace ExportTC.Model
             return ElementConstants.DRAFT;
         }
 
+        public string DefineRootElementAssembly(Element element)
+        {
+            return string.Format("{0}.{1}", element.Designation, "SLDASM");
+        }
+
         public string DefineSpare(string spare)
         {
             if (spare == null)
@@ -202,7 +211,11 @@ namespace ExportTC.Model
         {
             var fileName = element.FileName;
             if (fileName == null)
+            {
+                element.AssemblyFile  = element.Designation + ".SLDASM";
                 return;
+            }
+    
 
             if (fileName.Contains(".pdf") || fileName.Contains(".PDF"))
                 element.PDFFile = fileName;
