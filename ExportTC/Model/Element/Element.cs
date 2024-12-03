@@ -15,13 +15,17 @@ namespace HenconExport.Model.Elemnts
         public string? TreeType { get; set; }
         public string? DrawingFile { get; set; }
 
-        public string? EADrawingFile => !string.IsNullOrEmpty(DrawingFile)
+        public string? EADrawingFile;
+
+        public string? REDrawingFile;
+
+        /*public string? EADrawingFile => !string.IsNullOrEmpty(DrawingFile)
             ? $"EA{DrawingFile}"
             : $"EA{Designation}.SLDDRW";
 
         public string? REDrawingFile => !string.IsNullOrEmpty(DrawingFile)
             ? $"RE{DrawingFile}"
-            : $"RE{Designation}.SLDDRW";
+            : $"RE{Designation}.SLDDRW";*/
 
         public string? ZipFile { get; set; }
         public string? PartFile { get; set; }
@@ -33,6 +37,7 @@ namespace HenconExport.Model.Elemnts
         public string? FileName { get; set; }
         public string? DrawingIcon { get; set; }
         public Element Parent { get; set; }
+        public bool Root { get; set; }
         public List<Element>? Children { get; set; } = new List<Element>();
 
 

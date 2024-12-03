@@ -37,6 +37,7 @@
                 { "ic_zip.png", ElementConstants.ZIP},
                 { "ic_doc.png", ElementConstants.DOC},
                 { "ic_gif.png", ElementConstants.GIF},
+                { "ic_generic.png", ElementConstants.GENERIC},
 
             };
 
@@ -74,6 +75,8 @@
 
         public static string GetMakeBuyReplacmentText(string content)
         {
+            if (string.IsNullOrEmpty(content))
+                return string.Empty;
             foreach (var pictures in Replacments)
             {
                 if (content.Contains(pictures.Key))

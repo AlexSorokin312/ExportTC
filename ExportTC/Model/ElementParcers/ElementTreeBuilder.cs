@@ -1,5 +1,7 @@
 ﻿using ExportTC.Interfaces;
 using HenconExport.Model.Elemnts;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -19,11 +21,8 @@ namespace ExportTC.Model.ElementParcers
                 var newElement = new Element
                 {
                     Designation = line.Trim(),
-                    Children = new List<Element>() 
+                    Children = new List<Element>()
                 };
-
-                if (elements.Count > 0)
-                    elements.Add(newElement);
 
                 while (stack.Count > indentLevel)
                 {
@@ -40,9 +39,11 @@ namespace ExportTC.Model.ElementParcers
                 {
                     elements.Add(newElement);
                 }
+
                 stack.Push(newElement);
             }
-            return elements; 
+
+            return elements;
         }
 
         private static int GetIndentLevel(string line)
@@ -63,18 +64,22 @@ namespace ExportTC.Model.ElementParcers
 
             foreach (var line in lines)
             {
-                if (line.Contains("<DIV"))
+                // Ищем открывающие теги <DIV>
+                if (Regex.IsMatch(line, @"<\s*DIV[^>]*>", RegexOptions.IgnoreCase))
                     outputLines.Add("<DIV>");
-                if (line.Contains("</DIV>"))
+                // Ищем закрывающие теги </DIV>
+                if (Regex.IsMatch(line, @"<\s*/\s*DIV\s*>", RegexOptions.IgnoreCase))
                     outputLines.Add("</DIV>");
 
-                var matches = Regex.Matches(line, @"<a[^>]*>(\d+)<\/a>");
+                // Ищем содержимое внутри тегов <a>
+                var matches = Regex.Matches(line, @"<a[^>]*>(.*?)<\/a>", RegexOptions.IgnoreCase);
                 foreach (Match match in matches)
                 {
                     if (match.Groups.Count > 1)
-                        outputLines.Add(match.Groups[1].Value);
+                        outputLines.Add(match.Groups[1].Value.Trim());
                 }
             }
+
             return outputLines;
         }
 
@@ -99,24 +104,34 @@ namespace ExportTC.Model.ElementParcers
                     continue;
                 }
 
-                if (trimmedLine.Contains("<DIV") || trimmedLine.Contains("</DIV>"))
-                    continue;
+                // Не пропускаем строки с <DIV> или </DIV>
 
                 if (!string.IsNullOrWhiteSpace(trimmedLine))
                 {
                     outputLines.Add(new string('\t', indentLevel) + trimmedLine);
                 }
-
-                var matches = Regex.Matches(trimmedLine, @"<a[^>]*>(\d+)<\/a>");
-                foreach (Match match in matches)
-                {
-                    if (match.Groups.Count > 1)
-                    {
-                        outputLines.Add(new string('\t', indentLevel) + match.Groups[1].Value);
-                    }
-                }
             }
+
             return outputLines;
+        }
+
+        public List<Element> FlattenTree(List<Element> treeElements)
+        {
+            var flatList = new List<Element>();
+            foreach (var element in treeElements)
+            {
+                FlattenElement(element, flatList);
+            }
+            return flatList;
+        }
+
+        private void FlattenElement(Element element, List<Element> flatList)
+        {
+            flatList.Add(element);
+            foreach (var child in element.Children)
+            {
+                FlattenElement(child, flatList);
+            }
         }
     }
 }

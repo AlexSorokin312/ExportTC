@@ -17,9 +17,11 @@ namespace ExportTC.Model.ElementParcers
         public List<Element> GetElementsFromHTML(string htmlPath)
         {
             var allElements = _treeBuilder.BuildTreeWithParents(htmlPath);
-            _reader.FillDataFromHtml(htmlPath, allElements);
+            var elements = _treeBuilder.FlattenTree(allElements);
+            allElements.FirstOrDefault().Root = true;
+            _reader.FillDataFromHtml(htmlPath, elements);
            
-            return allElements;
+            return elements;
         }
 
 

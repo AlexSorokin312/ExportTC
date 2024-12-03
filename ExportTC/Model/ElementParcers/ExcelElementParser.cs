@@ -39,7 +39,7 @@ public class ExcelElementParser
 
         AssignParentsAndChildren(elements);
         AddElementsWithoutParentsToRoot(elements, rootElement);
-
+        elements[0].Root = true;
         return elements;
     }
 
@@ -91,7 +91,10 @@ public class ExcelElementParser
 
     private void AssignParentsAndChildren(List<Element> elements)
     {
-        var parentLookup = elements.ToDictionary(e => e.Pos, e => e);
+        // Убираем дубликаты
+        var parentLookup = elements.Where(e => !string.IsNullOrEmpty(e.Pos))
+                                   .GroupBy(e => e.Pos)
+                                   .ToDictionary(g => g.Key, g => g.First());
 
         foreach (var element in elements)
         {

@@ -26,7 +26,10 @@ namespace ExportTC.Model.ElementParcers
                 if (cols == null || cols.Count < 5) continue;
 
                 var designation = ExtractDesignation(cols[0].InnerHtml);
+                if (designation.Contains("BORDER"))
+                {
 
+                }
                 var elementsToUpdate = treeElements.Where(e => e.Designation == designation).ToList();
 
                 foreach (var elementToUpdate in elementsToUpdate)
@@ -40,11 +43,8 @@ namespace ExportTC.Model.ElementParcers
                         elementToUpdate.FileName = ExtractHrefValueFromColumn(cols[0].InnerHtml, htmlPath);
                         elementToUpdate.ProductStatus = ExtractStatusFromColumn(cols[0].InnerHtml);
                         elementToUpdate.DrawingIcon = ExtractImageTypeFromColumn(cols[0].InnerHtml);
-                       
                         if (string.IsNullOrEmpty(elementToUpdate.Revision))
-                        {
                             elementToUpdate.Revision = "00";
-                        }
                     }
                 }
             }

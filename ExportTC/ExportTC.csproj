@@ -49,7 +49,7 @@
 
   <ItemGroup>
     <Reference Include="System.Windows.Forms">
-      <HintPath>..\..\..\System.Windows.Forms.dll</HintPath>
+      <HintPath>..\..\DLL\System.Windows.Forms.dll</HintPath>
     </Reference>
   </ItemGroup>
 
