@@ -10,6 +10,9 @@ namespace ExportTC.ViewModel
     public partial class PathViewModel : ObservableObject
     {
         [ObservableProperty]
+        private string? _saveFilePath;
+
+        [ObservableProperty]
         private string? _directoryPath;
 
         [ObservableProperty]
@@ -21,6 +24,8 @@ namespace ExportTC.ViewModel
         public ICommand BrowseDirectoryCommand { get; }
         public ICommand BrowseExcelFileCommand { get; }
         public ICommand BrowseHtmFileCommand { get; }
+        public ICommand BrowseSavePathCommand { get; }
+        public ICommand BrowseGenericFileCommand { get; }
 
         private readonly Lazy<InitialData> _initialData;
         private readonly Lazy<IFileSearchService> _fileSearchService;
@@ -45,10 +50,12 @@ namespace ExportTC.ViewModel
                 _directoryPath = _initialData.Value.BaseDirectory;
                 _excelFilePath = _initialData.Value.ExcelFile;
                 _htmFilePath = _initialData.Value.HtmlFile;
+                _saveFilePath = _initialData.Value.SavePath;
 
-                BrowseDirectoryCommand = new RelayCommand(OpenDirectoryDialog);
+                BrowseDirectoryCommand = new RelayCommand(OpenCommonDirectoryDialog);
                 BrowseExcelFileCommand = new RelayCommand(OpenExcelFileDialog);
                 BrowseHtmFileCommand = new RelayCommand(OpenHtmFileDialog);
+                BrowseSavePathCommand = new RelayCommand(OpenSaveFileDialog);
             }
             catch (Exception ex)
             {
@@ -140,7 +147,7 @@ namespace ExportTC.ViewModel
             }
         }
 
-        private void OpenDirectoryDialog()
+        private void OpenCommonDirectoryDialog()
         {
             try
             {
@@ -148,6 +155,22 @@ namespace ExportTC.ViewModel
                 if (!string.IsNullOrWhiteSpace(selectedDirectory))
                 {
                     DirectoryPath = selectedDirectory;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.LogError(ex, ErrorMessages.DirectoryDialogError);
+            }
+        }
+
+        private void OpenSaveFileDialog()
+        {
+            try
+            {
+                var selectedDirectory = _fileDialogService.Value.OpenDirectory();
+                if (!string.IsNullOrWhiteSpace(selectedDirectory))
+                {
+                    SaveFilePath = selectedDirectory;
                 }
             }
             catch (Exception ex)

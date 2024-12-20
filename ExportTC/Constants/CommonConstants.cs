@@ -5,13 +5,16 @@
         public const string DirectoryDialogDescription = "Выберите папку";
         public const string ExcelFileDialogFilter = "Excel Files (*.xls;*.xlsx)|*.xls;*.xlsx|All Files (*.*)|*.*";
         public const string HtmFileDialogFilter = "HTML Files (*.html;*.htm)|*.html;*.htm|All Files (*.*)|*.*";
-
+        public const string DefaultResultFileName = "Henkon_impl.xlsm";
+        
         public static Dictionary<string, string> Replacments;
 
         public static Dictionary<string, string> BomMakePictures;
 
         public static Dictionary<string, string> ElementTypePictures;
         public static Dictionary<string, string> Statuses;
+
+
 
         static CommonConstants()
         {

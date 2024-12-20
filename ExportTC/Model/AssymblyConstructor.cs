@@ -3,7 +3,6 @@ using ExportTC.Model.ElementParcers;
 using ExportTC.Model.Factories;
 using HenconExport.Model.Elemnts;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace ExportTC.Model

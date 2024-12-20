@@ -1,4 +1,5 @@
 ﻿using ExportTC.Constants;
+using System.IO;
 
 namespace ExportTC.Model
 {
@@ -31,6 +32,7 @@ namespace ExportTC.Model
         public string? AddInfoColumn { get; set; }
 
         public string PathFiles { get; set; }
+        public string SavePath { get; set; }
         #endregion
 
         public InitialData()
@@ -39,6 +41,9 @@ namespace ExportTC.Model
             HeaderRow = DefaultReadSettings.HEADER_ROW_NUMBER;
             ProductIDCell = DefaultReadSettings.DESIGNAION_ID_DEFAULT;
             ProductNameCell = DefaultReadSettings.PRODUCT_NAME_DEFAULT;
+
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            SavePath = Path.Combine(desktopPath);
         }
     }
 }

@@ -113,9 +113,9 @@
 
                 <TextBox Grid.Column="0" Height="30" Margin="0,5,5,0" VerticalAlignment="Top" 
                          Style="{StaticResource PathTextBox}"
-                         Text="{Binding HtmFilePath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.ColumnSpan="2" />
+                         Text="{Binding SaveFilePath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.ColumnSpan="2" />
                 <Button Grid.Column="2" Content="Обзор" Width="75" Height="30" Margin="0,5,0,0" 
-                        HorizontalAlignment="Right" VerticalAlignment="Top" Command="{Binding BrowseHtmFileCommand}" 
+                        HorizontalAlignment="Right" VerticalAlignment="Top" Command="{Binding BrowseSavePathCommand}" 
                         Style="{StaticResource BrowseButtonStyle}" />
             </Grid>
         </GroupBox>

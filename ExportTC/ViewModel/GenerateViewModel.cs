@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ExportTC.Constants;
 using ExportTC.Model;
 using HenconExport;
 using HenconExport.Model.Elemnts;
@@ -111,8 +112,8 @@ namespace ExportTC.ViewModel
             IsProgressVisible = true;
             ProgressValue = 0;
 
-            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string outputPath = Path.Combine(desktopPath, "Henkon_impl.xlsm");
+            string savePath = _initialData.SavePath;
+            string outputPath = Path.Combine(savePath, CommonConstants.DefaultResultFileName);
 
             // Копируем ресурс в новый файл
             try
@@ -178,6 +179,7 @@ namespace ExportTC.ViewModel
             if (element.Parent != null)
                 excelWriter.WriteCell(worksheet, row, 1, element.Parent.Designation);
             excelWriter.WriteCell(worksheet, row, 2, "Элемент");
+
             excelWriter.WriteCell(worksheet, row, 3, element.Designation);
             excelWriter.WriteCell(worksheet, row, 4, element.Designation);
             excelWriter.WriteCell(worksheet, row, 5, element.Quantity);
