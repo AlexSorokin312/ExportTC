@@ -21,11 +21,15 @@ namespace ExportTC.ViewModel
         [ObservableProperty]
         private string? _htmFilePath;
 
+        [ObservableProperty]
+        private string? _genericFileDirectory;
+
         public ICommand BrowseDirectoryCommand { get; }
         public ICommand BrowseExcelFileCommand { get; }
         public ICommand BrowseHtmFileCommand { get; }
         public ICommand BrowseSavePathCommand { get; }
         public ICommand BrowseGenericFileCommand { get; }
+        public ICommand GenericFileDirectoryCommand { get; }
 
         private readonly Lazy<InitialData> _initialData;
         private readonly Lazy<IFileSearchService> _fileSearchService;
@@ -51,11 +55,13 @@ namespace ExportTC.ViewModel
                 _excelFilePath = _initialData.Value.ExcelFile;
                 _htmFilePath = _initialData.Value.HtmlFile;
                 _saveFilePath = _initialData.Value.SavePath;
+                _genericFileDirectory = _initialData.Value.GenericFilePath;
 
                 BrowseDirectoryCommand = new RelayCommand(OpenCommonDirectoryDialog);
                 BrowseExcelFileCommand = new RelayCommand(OpenExcelFileDialog);
                 BrowseHtmFileCommand = new RelayCommand(OpenHtmFileDialog);
                 BrowseSavePathCommand = new RelayCommand(OpenSaveFileDialog);
+                GenericFileDirectoryCommand = new RelayCommand(GenericFilePathDialog);
             }
             catch (Exception ex)
             {
@@ -171,6 +177,24 @@ namespace ExportTC.ViewModel
                 if (!string.IsNullOrWhiteSpace(selectedDirectory))
                 {
                     SaveFilePath = selectedDirectory;
+                    _initialData.Value.SavePath = selectedDirectory;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.LogError(ex, ErrorMessages.DirectoryDialogError);
+            }
+        }
+
+        private void GenericFilePathDialog()
+        {
+            try
+            {
+                var selectedDirectory = _fileDialogService.Value.OpenDirectory();
+                if (!string.IsNullOrWhiteSpace(selectedDirectory))
+                {
+                    GenericFileDirectory = selectedDirectory;
+                    _initialData.Value.GenericFilePath = selectedDirectory;
                 }
             }
             catch (Exception ex)

@@ -37,6 +37,76 @@ public class ExcelElementParser
             }
         }
 
+        //Проверка пизиций
+        int quntityColumnNubmer = ColumnLetterToIndex(config.QuantityColumn);
+        int descriptionColumnNumber = ColumnLetterToIndex(config.DescriptionColumn);
+        int levels = descriptionColumnNumber - quntityColumnNubmer;
+
+        int currentColumn = quntityColumnNubmer;
+
+        int[] demensions = new int[levels];
+        for (int i = 0; i < demensions.Length; i++)
+        {
+            demensions[i] = 1;
+        }
+
+        List<string> rows = new();
+        int lastIndex = -1;
+        for (int row = config.StartRow; row <= config.EndRow; row++)
+        {
+            string position = string.Empty;
+            for (int i = 0; i < demensions.Length; i++)
+            {
+                bool found = false;
+
+                var columnName = GetColumnName(currentColumn);
+                currentColumn++;
+                var value = excelReader.ReadCell(config.SheetNumber, columnName, row);
+
+                if (string.IsNullOrEmpty(value))
+                    continue;
+
+                if (lastIndex == i)
+                {
+                    demensions[i] += 1;
+                }
+                if (i < lastIndex)
+                {
+                    demensions[i] += 1;
+                    if (i +1  != demensions.Length)
+                        demensions[i + 1] = 1;
+                }
+
+                for (int j = 0; j <= i; j++)
+                {
+                    if (demensions[j] / 10 == 0)
+                        position += string.Format("00{0}.", demensions[j]);
+                    else
+                         position += string.Format("0{0}.", demensions[j]);
+
+                    currentColumn = quntityColumnNubmer;
+                    found = true;
+                    lastIndex = j;
+                }
+                rows.Add(position);
+                if (!string.IsNullOrEmpty(position))
+                     position = position.Substring(0, position.Length - 1);
+
+                string designation = excelReader.ReadCell(config.SheetNumber, config.DesignationColumn, row);
+                var element = elements.FirstOrDefault(e => e.Designation == designation && string.IsNullOrEmpty(e.Pos));
+                
+                element.Pos = position;
+                if (!element.Pos.Equals(position))
+                {
+
+                }
+
+                if (found)
+                    break;
+                
+            }
+        }
+        
         AssignParentsAndChildren(elements);
         AddElementsWithoutParentsToRoot(elements, rootElement);
         elements[0].Root = true;
@@ -64,7 +134,8 @@ public class ExcelElementParser
                                        string spareColumn,
                                        string addInfoColumn)
     {
-        string pos = excelReader.ReadCell(sheetNumber, positionColumn, row) ?? string.Empty;
+        //string pos = excelReader.ReadCell(sheetNumber, positionColumn, row) ?? string.Empty;
+        string pos =  string.Empty;
         string designation = excelReader.ReadCell(sheetNumber, designationColumn, row) ?? string.Empty;
         string name = excelReader.ReadCell(sheetNumber, descriptionColumn, row) ?? string.Empty;
         string quantity = excelReader.ReadCell(sheetNumber, quantityColumn, row) ?? string.Empty;
@@ -88,6 +159,7 @@ public class ExcelElementParser
 
         return element;
     }
+
 
     private void AssignParentsAndChildren(List<Element> elements)
     {
@@ -122,6 +194,18 @@ public class ExcelElementParser
     {
         int lastDotIndex = pos.LastIndexOf('.');
         return (lastDotIndex > 0) ? pos.Substring(0, lastDotIndex) : string.Empty;
+    }
+
+
+    private int ColumnLetterToIndex(string columnLetter)
+    {
+        int index = 0;
+        foreach (char c in columnLetter.ToUpper())
+        {
+            index *= 26;
+            index += c - 'A' + 1;
+        }
+        return index;
     }
 
 

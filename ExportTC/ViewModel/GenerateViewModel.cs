@@ -62,13 +62,14 @@ namespace ExportTC.ViewModel
                                    ?? throw new InvalidOperationException(ErrorMessages.FileSearchServiceError);
 
                 ComboBoxItems = new ObservableCollection<string> {
-            "Структура изделия (с матрицей)",
-            "Структура изделия с заменами",
-            "Структура (наборы данных)" };
+                    "Структура изделия (с матрицей)",
+                    "Структура изделия с заменами",
+                    "Структура (наборы данных)" };
 
                 SelectedComboBoxItem = ComboBoxItems[1];
 
                 DisplayTree();
+                FindGenericFiles();
                 StartProcessCommand = new AsyncRelayCommand(SaveToExcelFileAsync);
 
                 AppLogger.LogInformation("GenerateViewModel initialized successfully.");
@@ -77,6 +78,40 @@ namespace ExportTC.ViewModel
             {
                 AppLogger.LogFatal(ex, ErrorMessages.ViewModelInitializationError);
                 throw;
+            }
+        }
+
+        private void FindGenericFiles()
+        {
+            var path = _initialData.GenericFilePath; // Исходная директория поиска
+            if (string.IsNullOrEmpty(path))
+                return;
+            string directoryToSave = Path.Combine(_initialData.BaseDirectory, "Henkon_imp");// Задайте путь к директории для сохранения
+            var cacheFileNames = CacheFileNames.fileNames;
+
+            if (!Directory.Exists(directoryToSave))
+            {
+                Directory.CreateDirectory(directoryToSave);
+            }
+
+            foreach (var fileName in cacheFileNames)
+            {
+                var files = Directory.GetFiles(path, fileName, SearchOption.AllDirectories);
+
+                foreach (var file in files)
+                {
+                    string destinationPath = Path.Combine(directoryToSave, Path.GetFileName(file));
+
+                    try
+                    {
+                        File.Copy(file, destinationPath, overwrite: true);
+                        Console.WriteLine($"Файл {file} успешно скопирован в {destinationPath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка при копировании файла {file}: {ex.Message}");
+                    }
+                }
             }
         }
 

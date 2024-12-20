@@ -18,6 +18,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Заголовок -->
@@ -116,6 +117,52 @@
                          Text="{Binding SaveFilePath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.ColumnSpan="2" />
                 <Button Grid.Column="2" Content="Обзор" Width="75" Height="30" Margin="0,5,0,0" 
                         HorizontalAlignment="Right" VerticalAlignment="Top" Command="{Binding BrowseSavePathCommand}" 
+                        Style="{StaticResource BrowseButtonStyle}" />
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Grid.Row="4" Grid.ColumnSpan="2" Margin="5,0,5,10" Padding="5" BorderBrush="#CCCCCC" Background="{DynamicResource StackBackGroundColor}">
+            <GroupBox.Header>
+                <StackPanel Orientation="Horizontal">
+                    <Label Style="{StaticResource DescriptionLabel}">Директория для сохранения файла plmxml:</Label>
+                    <Image Source="/ExportTC;component/Resources/tooltip.png" Width="16" Height="16" Margin="5,0,0,0" ToolTip="Путь к HTML-файлу с названием tree.htm. Поле заполнится автоматически, если задана исходная директория и файл находится в ней" />
+                </StackPanel>
+            </GroupBox.Header>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="47*" />
+                    <ColumnDefinition Width="125*"/>
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0" Height="30" Margin="0,5,5,0" VerticalAlignment="Top" 
+                         Style="{StaticResource PathTextBox}"
+                         Text="{Binding SaveFilePath, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.ColumnSpan="2" />
+                <Button Grid.Column="2" Content="Обзор" Width="75" Height="30" Margin="0,5,0,0" 
+                        HorizontalAlignment="Right" VerticalAlignment="Top" Command="{Binding BrowseSavePathCommand}" 
+                        Style="{StaticResource BrowseButtonStyle}" />
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Grid.Row="5" Grid.ColumnSpan="2" Margin="5,0,5,10" Padding="5" BorderBrush="#CCCCCC" Background="{DynamicResource StackBackGroundColor}">
+            <GroupBox.Header>
+                <StackPanel Orientation="Horizontal">
+                    <Label Style="{StaticResource DescriptionLabel}">Директория хранения Generic-файлов:</Label>
+                    <Image Source="/ExportTC;component/Resources/tooltip.png" Width="16" Height="16" Margin="5,0,0,0" ToolTip="Путь к HTML-файлу с названием tree.htm. Поле заполнится автоматически, если задана исходная директория и файл находится в ней" />
+                </StackPanel>
+            </GroupBox.Header>
+            <Grid Cursor="">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="47*" />
+                    <ColumnDefinition Width="125*"/>
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0" Height="30" Margin="0,5,5,0" VerticalAlignment="Top" 
+                         Style="{StaticResource PathTextBox}"
+                         Text="{Binding GenericFileDirectory, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.ColumnSpan="2" />
+                <Button Grid.Column="2" Content="Обзор" Width="75" Height="30" Margin="0,5,0,0" 
+                        HorizontalAlignment="Right" VerticalAlignment="Top" Command="{Binding GenericFileDirectoryCommand}" 
                         Style="{StaticResource BrowseButtonStyle}" />
             </Grid>
         </GroupBox>

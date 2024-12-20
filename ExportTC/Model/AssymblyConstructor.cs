@@ -61,10 +61,6 @@ namespace ExportTC.Model
         {
             foreach (var htmlElement in htmlElements)
             {
-                if (htmlElement.Designation.Contains("BORDER"))
-                {
-
-                }
                 var element = elements.FirstOrDefault(x => x.Designation == htmlElement.Designation);
 
                 if (element == null)
@@ -213,10 +209,6 @@ namespace ExportTC.Model
 
             foreach (var element in elements)
             {
-                if (element.Designation.Contains("BORDER"))
-                {
-                    elementsToRemove.Add(element);
-                }
                 if (element.Children?.Count > 0)
                 {
                     foreach (var child in element.Children)
@@ -228,6 +220,7 @@ namespace ExportTC.Model
                             child.Name = element.Name;
                             child.Parent = element.Parent;
                             child.Revision = element.Revision;
+                            CacheFileNames.fileNames.Add(child.FileName);
                         }
                         else if (child.DrawingIcon == ElementConstants.DOC)
                         {
@@ -244,6 +237,7 @@ namespace ExportTC.Model
                             child.Name = element.Name;
                             child.Parent = element.Parent;
                             child.Revision = element.Revision;
+                            CacheFileNames.fileNames.Add(child.FileName);
                         }
                         else if (child.DrawingIcon == ElementConstants.GIF)
                         {
@@ -252,6 +246,7 @@ namespace ExportTC.Model
                             child.Name = element.Name;
                             child.Parent = element.Parent;
                             child.Revision = element.Revision;
+                            CacheFileNames.fileNames.Add(child.FileName);
                         }
                     }
                 }

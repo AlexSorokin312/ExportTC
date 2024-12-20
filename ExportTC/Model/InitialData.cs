@@ -33,6 +33,7 @@ namespace ExportTC.Model
 
         public string PathFiles { get; set; }
         public string SavePath { get; set; }
+        public string GenericFilePath { get; set; }
         #endregion
 
         public InitialData()
