@@ -64,9 +64,17 @@ namespace ExportTC.Model.ElementParcers
 
             foreach (var line in lines)
             {
+                // Пропускаем строки, содержащие нежелательные теги
+                if (Regex.IsMatch(line, @"<\s*IMG[^>]*>", RegexOptions.IgnoreCase) ||
+                    line.Contains("BORDER=", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue; // Пропускаем "кривые" строки
+                }
+
                 // Ищем открывающие теги <DIV>
                 if (Regex.IsMatch(line, @"<\s*DIV[^>]*>", RegexOptions.IgnoreCase))
                     outputLines.Add("<DIV>");
+
                 // Ищем закрывающие теги </DIV>
                 if (Regex.IsMatch(line, @"<\s*/\s*DIV\s*>", RegexOptions.IgnoreCase))
                     outputLines.Add("</DIV>");
@@ -82,6 +90,7 @@ namespace ExportTC.Model.ElementParcers
 
             return outputLines;
         }
+
 
         private List<string> FormIndentForStructure(string path)
         {
@@ -127,6 +136,10 @@ namespace ExportTC.Model.ElementParcers
 
         private void FlattenElement(Element element, List<Element> flatList)
         {
+
+            if (element.Parent != null)
+                if (flatList.Any(x => x.Designation == element.Designation && x.Parent.Designation == element.Parent.Designation))
+                    return;
             flatList.Add(element);
             foreach (var child in element.Children)
             {

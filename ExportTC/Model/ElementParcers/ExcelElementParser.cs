@@ -123,4 +123,122 @@ public class ExcelElementParser
         int lastDotIndex = pos.LastIndexOf('.');
         return (lastDotIndex > 0) ? pos.Substring(0, lastDotIndex) : string.Empty;
     }
+
+
+    //<------------------------------------------------------------------------------------------>
+    private string FillPos(IExcelReader excelReader, int row, string quantityColumnName, string designationColumnName, int sheetNumber)
+    {
+        // Переменная для хранения результата
+        string result = "";
+
+        // Получаем индекс столбца, в котором находится имя столбца с количеством
+        int quantityColumnIndex = GetColumnIndex(quantityColumnName);
+        if (quantityColumnIndex == -1)
+        {
+            // Если столбец с таким именем не найден, выходим
+            Console.WriteLine($"Столбец с именем {quantityColumnName} не найден.");
+            return string.Empty;
+        }
+
+        // Чтение ячейки, которая соответствует столбцу с количеством
+        var quantityCellValue = excelReader.ReadCell(sheetNumber, GetColumnName(quantityColumnIndex), row);
+
+        // Преобразуем значение в число
+        if (!int.TryParse(quantityCellValue, out int quantity))
+        {
+            // Если значение не число, то что-то пошло не так
+            Console.WriteLine("Неверное значение в ячейке количества");
+            return string.Empty;
+        }
+
+        // Начинаем считывать значения ячеек начиная с позиции, которая идет после столбца с количеством
+        int currentColumnIndex = quantityColumnIndex + 1; // Следующий столбец после quantityColumnName
+        string cellValue = "";
+
+        // Читаем ячейки, пока не найдем нужное условие
+        while (true)
+        {
+            cellValue = excelReader.ReadCell(sheetNumber, GetColumnName(currentColumnIndex), row);
+
+            // Если ячейка содержит текст (например, буквы), прекращаем цикл
+            if (string.IsNullOrEmpty(cellValue))
+            {
+                currentColumnIndex++; 
+                continue;
+            }
+
+            // Если это число (проверяем по содержимому), и ищем родительскую позицию
+            if (int.TryParse(cellValue, out int number))
+            {
+                result += cellValue; // Сохраняем число
+                int parentValue;
+                currentColumnIndex--; // Переходим на один столбец назад
+
+                // Читаем вверх по этому столбцу, пока не найдем еще одно число
+                while (row > 1) // Пока не достигнем первой строки
+                {
+                    row--; // Двигаемся вверх
+                    string previousCellValue = excelReader.ReadCell(sheetNumber, GetColumnName(currentColumnIndex), row);
+
+                    // Если ячейка пустая или содержит текст, пропускаем ее
+                    if (string.IsNullOrEmpty(previousCellValue) || previousCellValue.All(char.IsLetter))
+                    {
+                        continue;
+                    }
+
+                    // Если это число, сохраняем и выходим
+                    if (int.TryParse(previousCellValue, out int previousNumber))
+                    {
+                        string designationValue = excelReader.ReadCell(sheetNumber, designationColumnName, row);
+                        result += " " + designationValue; // Добавляем значение из столбца designationColumnName
+
+                        break; // Останавливаем цикл
+                    }
+                }
+
+                break; // Останавливаем основной цикл, так как все найдено
+
+            }
+
+            if (!string.IsNullOrEmpty(cellValue))
+            {
+                return string.Empty;
+            }
+
+            // Если ячейка не число и не текст, продолжаем читать следующую ячейку
+            currentColumnIndex++; // Переходим к следующему столбцу
+        }
+
+        return result;
+    }
+
+    // Метод для получения индекса столбца по его имени (например, A -> 1, B -> 2)
+    private int GetColumnIndex(string columnName)
+    {
+        int columnIndex = 0;
+        int factor = 1;
+
+        // Преобразуем строковое имя в индекс (например, A -> 1, B -> 2)
+        for (int i = columnName.Length - 1; i >= 0; i--)
+        {
+            columnIndex += (columnName[i] - 'A' + 1) * factor;
+            factor *= 26;
+        }
+
+        return columnIndex - 1; // Возвращаем индекс с 0
+    }
+
+    // Метод для получения буквы столбца по его индексу
+    private string GetColumnName(int columnIndex)
+    {
+        int div = columnIndex;
+        string columnName = "";
+        while (div >= 0)
+        {
+            int mod = div % 26;
+            columnName = Convert.ToChar(mod + 65) + columnName;
+            div = (div / 26) - 1;
+        }
+        return columnName;
+    }
 }

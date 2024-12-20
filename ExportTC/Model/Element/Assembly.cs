@@ -20,7 +20,8 @@ public class Assembly
     {
         if (_elements.Count <= 1) return; 
 
-        var firstElement = _elements[0];
+        var firstElement = _elements.FirstOrDefault(x=>x.Children.Count != 0);
+        firstElement.Parent = null;
 
         var sortedElements = _elements.Skip(1)
             .Where(e => e.Pos != null) 

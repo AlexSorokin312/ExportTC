@@ -17,16 +17,9 @@ namespace HenconExport.Model.Elemnts
 
         public string? EADrawingFile;
 
-        public string? REDrawingFile;
+        public string? REDrawingFile { get; set; }
 
-        /*public string? EADrawingFile => !string.IsNullOrEmpty(DrawingFile)
-            ? $"EA{DrawingFile}"
-            : $"EA{Designation}.SLDDRW";
-
-        public string? REDrawingFile => !string.IsNullOrEmpty(DrawingFile)
-            ? $"RE{DrawingFile}"
-            : $"RE{Designation}.SLDDRW";*/
-
+        public string? EMDrawingFile;
         public string? ZipFile { get; set; }
         public string? PartFile { get; set; }
         public string? AssemblyFile { get; set; }
@@ -39,8 +32,6 @@ namespace HenconExport.Model.Elemnts
         public Element Parent { get; set; }
         public bool Root { get; set; }
         public List<Element>? Children { get; set; } = new List<Element>();
-
-
 
         public string? ItemCodeSupplier { get; set; }
         public string? Costtype { get; set; }

@@ -4,6 +4,7 @@ using ExportTC.Interfaces;
 using HenconExport.Model.Elemnts;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Windows.Controls.Ribbon;
 
 namespace ExportTC.Model.ElementParcers
 {
@@ -26,32 +27,53 @@ namespace ExportTC.Model.ElementParcers
                 if (cols == null || cols.Count < 5) continue;
 
                 var designation = ExtractDesignation(cols[0].InnerHtml);
-                if (designation.Contains("BORDER"))
+                if (designation.Contains("448006350"))
                 {
 
                 }
-                var elementsToUpdate = treeElements.Where(e => e.Designation == designation).ToList();
+                var type = ExtractImageTypeFromColumn(cols[0].InnerHtml);
+                var elementsToUpdate = treeElements.Where(e => e.Designation == designation && string.IsNullOrEmpty(e.Name)).ToList();
+
+                if (elementsToUpdate.Count > 1)
+                {
+                    if (type == ElementConstants.DETAIL || type == ElementConstants.ASSEMBLY)
+                    {
+                        var elementNoUpdate = elementsToUpdate.FirstOrDefault(x=>x.Children.Count == 0);
+                        elementsToUpdate.Remove(elementNoUpdate);
+                    }
+                    else
+                    {
+                        var elementsNoUpdate = elementsToUpdate.Where(x => x.Children.Count > 0).ToList();
+                        elementsNoUpdate.ForEach(x => elementsToUpdate.Remove(x));
+                    }
+                }
 
                 foreach (var elementToUpdate in elementsToUpdate)
                 {
                     if (elementToUpdate != null)
                     {
+                        elementToUpdate.DrawingIcon = type;
                         elementToUpdate.Quantity = cols[1].InnerText;
                         elementToUpdate.Name = cols[2].InnerText.Clean();
                         elementToUpdate.MakeOrBuy = ExtractMakeOrBuyFromColumn(cols[3].InnerHtml);
                         elementToUpdate.Revision = cols[4].InnerText.Clean();
                         elementToUpdate.FileName = ExtractHrefValueFromColumn(cols[0].InnerHtml, htmlPath);
                         elementToUpdate.ProductStatus = ExtractStatusFromColumn(cols[0].InnerHtml);
-                        elementToUpdate.DrawingIcon = ExtractImageTypeFromColumn(cols[0].InnerHtml);
+                        elementToUpdate.Designation = designation;
                         if (string.IsNullOrEmpty(elementToUpdate.Revision))
                             elementToUpdate.Revision = "00";
                     }
                 }
             }
+            var m = treeElements.FirstOrDefault(x => x.Designation.Contains("MG BORDER"));
         }
 
         private string ExtractDesignation(string innerHtml)
         {
+            if (innerHtml.Contains("448001671"))
+            {
+
+            }
             var match = Regex.Match(innerHtml, @"<a.*?href=""\d+\.htm"".*?>(\d+)<\/a>");
             return match.Success ? match.Groups[1].Value : "Unknown";
         }

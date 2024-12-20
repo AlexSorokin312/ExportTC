@@ -6,12 +6,12 @@
         public const string DEFAULT_TYPE = "Элемент";
         public const string DETAIL = "Detail";
         public const string ASSEMBLY = "Assy";
-        public const string PDF = "PDF";
-        public const string ZIP = "ZIP";
-        public const string DOC = "DOC";
-        public const string GIF = "GIF";
+        public const string PDF = "Pdf";
+        public const string ZIP = "Zip";
+        public const string DOC = "Doc";
+        public const string GIF = "Gif";
         public const string GENERIC = "GENERIC";
-        public const string DRAFT = "DRAFT";
+        public const string DRAFT = "Draft";
 
         public const string CHECKEDIN = "checkedin";
         public const string CHECKEDOUT = "checkedout";

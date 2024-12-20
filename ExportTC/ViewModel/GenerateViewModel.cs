@@ -89,6 +89,7 @@ namespace ExportTC.ViewModel
 
                 _assembly = assemblyFiller.GetAssembly(_initialData);
                 var rootElements = _assembly.GetRootElements();
+
                 RootElements.Clear();
                 foreach (var element in rootElements)
                 {
@@ -111,12 +112,13 @@ namespace ExportTC.ViewModel
             ProgressValue = 0;
 
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string outputPath = Path.Combine(desktopPath, "Output.xlsm");
+            string outputPath = Path.Combine(desktopPath, "Henkon_impl.xlsm");
 
             // Копируем ресурс в новый файл
             try
             {
-                using (var resourceStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/HENKON.xlsm")).Stream)
+               // using (var resourceStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/henkon_imp.xlsm")).Stream)
+                using (var resourceStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/Henkon_imp 1.xlsm")).Stream)
                 {
                     using (var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
                     {
@@ -167,7 +169,6 @@ namespace ExportTC.ViewModel
 
         private void ShowErrorMessage(string message)
         {
-            // Отобразить сообщение об ошибке пользователю, например, через MessageBox или иной UI элемент
             MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
@@ -180,22 +181,41 @@ namespace ExportTC.ViewModel
             excelWriter.WriteCell(worksheet, row, 3, element.Designation);
             excelWriter.WriteCell(worksheet, row, 4, element.Designation);
             excelWriter.WriteCell(worksheet, row, 5, element.Quantity);
-            excelWriter.WriteCell(worksheet, row, 6, element.Name);
+            if (!string.IsNullOrEmpty(element.Name))
+            {
+                excelWriter.WriteCell(worksheet, row, 6, element.Name);
+            }
+            else
+            {
+                excelWriter.WriteCell(worksheet, row, 6, element.Designation);
+            }
+
             excelWriter.WriteCell(worksheet, row, 10, element.Revision);
+            excelWriter.WriteCell(worksheet, row, 14, element.Designation);
+            excelWriter.WriteCell(worksheet, row, 15, element.Designation + "-" + element.Revision);
+            if (element.Parent != null) 
+                excelWriter.WriteCell(worksheet, row, 16, string.Format("{0}-{1}.{2}-{3}", element.Parent.Designation, element.Parent.Revision, element.Designation, element.Revision));
             excelWriter.WriteCell(worksheet, row, 19, element.DocFile);
             excelWriter.WriteCell(worksheet, row, 20, element.DocxFile);
             excelWriter.WriteCell(worksheet, row, 24, element.PDFFile);
             excelWriter.WriteCell(worksheet, row, 26, element.PartFile);
             excelWriter.WriteCell(worksheet, row, 27, element.AssemblyFile);
-            excelWriter.WriteCell(worksheet, row, 28, element.EADrawingFile);
-            excelWriter.WriteCell(worksheet, row, 29, element.REDrawingFile);
-            excelWriter.WriteCell(worksheet, row, 30, element.JpegFile);
-            excelWriter.WriteCell(worksheet, row, 31, element.ZipFile);
-            excelWriter.WriteCell(worksheet, row, 32, element.Costtype);
-            excelWriter.WriteCell(worksheet, row, 33, element.MakeOrBuy);
-            excelWriter.WriteCell(worksheet, row, 34, element.Spare);
-            excelWriter.WriteCell(worksheet, row, 35, element.ItemCodeSupplier);
-            excelWriter.WriteCell(worksheet, row, 36, element.TreeType);
+
+            excelWriter.WriteCell(worksheet, row, 28, element.DrawingFile);
+            excelWriter.WriteCell(worksheet, row, 29, element.EMDrawingFile);
+            excelWriter.WriteCell(worksheet, row, 30, element.EADrawingFile);
+            excelWriter.WriteCell(worksheet, row, 31, element.REDrawingFile);
+            excelWriter.WriteCell(worksheet, row, 32, element.JpegFile);
+            excelWriter.WriteCell(worksheet, row, 33, element.ZipFile);
+            excelWriter.WriteCell(worksheet, row, 34, element.Costtype);
+            excelWriter.WriteCell(worksheet, row, 35, element.MakeOrBuy);
+            excelWriter.WriteCell(worksheet, row, 36, element.Spare);
+            excelWriter.WriteCell(worksheet, row, 37, element.ItemCodeSupplier);
+            excelWriter.WriteCell(worksheet, row, 38, element.TreeType);
+
+            excelWriter.WriteCell(worksheet, row, 40, Path.GetFileNameWithoutExtension(element.PDFFile));
+            excelWriter.WriteCell(worksheet, row, 41, Path.GetFileNameWithoutExtension(element.JpegFile));
+            excelWriter.WriteCell(worksheet, row, 42, Path.GetFileNameWithoutExtension(element.ZipFile));
         }
     }
 }

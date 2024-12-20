@@ -3,6 +3,7 @@ using ExportTC.Model.ElementParcers;
 using ExportTC.Model.Factories;
 using HenconExport.Model.Elemnts;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace ExportTC.Model
@@ -40,16 +41,20 @@ namespace ExportTC.Model
                 .Where(e => !Regex.IsMatch(e.Designation, @"\b[А-ЯA-Z]\d+\b", RegexOptions.IgnoreCase))
                 .ToList();
 
-            filteredElements.FirstOrDefault().Parent = null;
-
             MergeExcelElementsWithHtmlData(excelElements, filteredElements);
+
             MatchQuantity(filteredElements, excelElements);
             MakeAdditionalParamters(filteredElements, excelElements);
             FillFileNames(filteredElements, initialData.BaseDirectory);
+
             LinkDocumentsToDetails(filteredElements);
             FindFiles(filteredElements, initialData);
             var assembly = new Assembly(filteredElements);
+
+            var c = filteredElements.FirstOrDefault(x => x.Designation.Contains("440012793"));
+
             assembly.Sort();
+
             return assembly;
         }
 
@@ -57,6 +62,10 @@ namespace ExportTC.Model
         {
             foreach (var htmlElement in htmlElements)
             {
+                if (htmlElement.Designation.Contains("BORDER"))
+                {
+
+                }
                 var element = elements.FirstOrDefault(x => x.Designation == htmlElement.Designation);
 
                 if (element == null)
@@ -76,7 +85,7 @@ namespace ExportTC.Model
                 else
                 {
                     htmlElement.Pos = element.Pos;
-
+                    htmlElement.Name = element.Name;
                 }
             }
         }
@@ -127,7 +136,7 @@ namespace ExportTC.Model
         {
             foreach (var element in htmlElements)
             {
-                if (element.Designation.Contains("447020433"))
+                if (element.Designation.Contains("449701658"))
                 {
 
                 }
@@ -139,12 +148,14 @@ namespace ExportTC.Model
                 var excelElement = excelElements.FirstOrDefault(x=>!x.Root && x.Designation == element.Designation && x.Parent.Designation == element.Parent.Designation);
                 if (excelElement != null)
                 {
+
                     element.Quantity = excelElement.Quantity;
                     element.Costtype = excelElement.Costtype;
                     element.MakeOrBuy = _parametersDefinder.DefineMakeBuy(excelElement.MakeOrBuy);
                     element.Spare = _parametersDefinder.DefineSpare(excelElement.Spare);
                     element.ItemCodeSupplier = excelElement.ItemCodeSupplier;
                     element.AddInfo = excelElement.AddInfo;
+
                 }
                 else
                 {
@@ -180,12 +191,6 @@ namespace ExportTC.Model
             foreach (var element in collection)
             {
                 var designation = element.Designation;
-                var foundPathFile = _fileSearchService.FindFilesWithCriteria(baseDirectory, designation, ".SLDDRW").FirstOrDefault();
-                if (!string.IsNullOrEmpty(foundPathFile))
-                {
-                    var fileName = Path.GetFileName(foundPathFile);
-                    element.DrawingFile = fileName;
-                }
 
                 var foundDetails = _fileSearchService.FindFilesWithCriteria(baseDirectory, designation, ".SLDPRT").FirstOrDefault();
                 if (!string.IsNullOrEmpty(foundDetails))
@@ -219,35 +224,41 @@ namespace ExportTC.Model
                     {
                         if (child.DrawingIcon == ElementConstants.PDF)
                         {
-                            element.DocFile = string.Format("{0}.{1}", child.Designation, "dox");
-                            elementsToRemove.Add(child);
+                            child.PDFFile = string.Format("{0}.{1}", child.Designation, "pdf");
+                            child.Designation = element.Designation;
+                            child.Name = element.Name;
+                            child.Parent = element.Parent;
+                            child.Revision = element.Revision;
                         }
-                        if (child.DrawingIcon == ElementConstants.DOC)
+                        else if (child.DrawingIcon == ElementConstants.DOC)
                         {
-                            element.PDFFile = string.Format("{0}.{1}", child.Designation, "pdf");
-                            elementsToRemove.Add(child);
-                        }
-                        if (child.DrawingIcon == ElementConstants.GIF)
-                        {
-                            if (element.Designation.Contains("BORDER") || child.Designation.Contains("BORDER"))
+                            if (child.FileName.Contains("docx"))
                             {
-
+                                child.DocxFile = string.Format("{0}.{1}", child.Designation, "docx");
                             }
-                            element.JpegFile = string.Format("{0}.{1}", child.Designation, "gif");
-                            elementsToRemove.Add(child);
+                            else
+                            {
+                                child.DocFile = string.Format("{0}.{1}", child.Designation, "doc");
+                            }
+
+                            child.Designation = element.Designation;
+                            child.Name = element.Name;
+                            child.Parent = element.Parent;
+                            child.Revision = element.Revision;
                         }
-                        if (child.DrawingIcon == ElementConstants.GENERIC)
+                        else if (child.DrawingIcon == ElementConstants.GIF)
                         {
-                            elementsToRemove.Add(child);
+                            child.JpegFile = string.Format("{0}.{1}", child.Designation, "jpg");
+                            child.Designation = element.Designation;
+                            child.Name = element.Name;
+                            child.Parent = element.Parent;
+                            child.Revision = element.Revision;
                         }
                     }
                 }
             }
 
-            foreach (var element in elementsToRemove)
-            {
-                elements.Remove(element);
-            }
+
         }
 
         private void FindFiles(List<Element> elements, InitialData initialData)
@@ -263,14 +274,13 @@ namespace ExportTC.Model
                         var fileName = Path.GetFileName(matchingFile);
                         if (matchingFile.Contains("EA"))
                             element.EADrawingFile = fileName;
-                       else if (matchingFile.Contains("RE"))
+                        else if (matchingFile.Contains("RE"))
                             element.REDrawingFile = fileName;
+                        else if (matchingFile.Contains("EM"))
+                            element.EMDrawingFile = fileName;
                         else
-                            element.EADrawingFile = fileName;
+                            element.DrawingFile = fileName;
                     }
-                    
-                    //Так смотри, у каждого элемента я беру Designation и рекурсивно ищу во всех подпкаках BaseDirectory имена
-                    //файлов, которые содержат designation и расширение SLDDRW.
                 }
             }
         }

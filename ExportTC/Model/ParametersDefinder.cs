@@ -13,7 +13,6 @@ namespace ExportTC.Model
         {
             { ".pdf", (e, f) => { e.PDFFile = f; e.TCType = "PDF"; } },
             { ".zip", (e, f) => { e.ZipFile = f; e.TCType = "ZIP"; } },
-            { ".sldprt", (e, f) => e.PartFile = f },
             { ".dwg", (e, f) => e.DrawingFile = f },
             { ".doc", (e, f) => e.DocFile = f },
             { ".docx", (e, f) => e.DocxFile = f },
@@ -57,11 +56,6 @@ namespace ExportTC.Model
         public void DefineFiles(Element element)
         {
             var fileName = element.FileName;
-            if (fileName == null)
-            {
-                element.AssemblyFile = $"{element.Designation}.SLDASM";
-                return;
-            }
 
             // Преобразуем имя файла в нижний регистр для унификации
             var fileExtension = Path.GetExtension(fileName)?.ToLower();

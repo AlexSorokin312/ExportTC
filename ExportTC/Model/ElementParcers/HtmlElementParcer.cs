@@ -18,6 +18,7 @@ namespace ExportTC.Model.ElementParcers
         {
             var allElements = _treeBuilder.BuildTreeWithParents(htmlPath);
             var elements = _treeBuilder.FlattenTree(allElements);
+
             allElements.FirstOrDefault().Root = true;
             _reader.FillDataFromHtml(htmlPath, elements);
            
