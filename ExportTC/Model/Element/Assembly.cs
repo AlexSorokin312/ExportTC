@@ -13,13 +13,27 @@ public class Assembly
 
     public IEnumerable<Element> GetRootElements()
     {
-        return _elements.Where(e => e.Parent == null);
+        var root = _elements.Where(x => x.Designation == RootAssembly.value);
+        if (root == null)
+            return _elements.Where(e => e.Parent == null);
+        return root;
+    }
+
+    public Element GetRootElement()
+    {
+        var root = _elements.FirstOrDefault(x => x.Designation == RootAssembly.value);
+        if (root != null)
+            return root;
+        else
+            return _elements.FirstOrDefault(e => e.Parent == null);
+        
     }
 
     public void Sort()
     {
         if (_elements.Count <= 1) return; 
 
+        var firstElement1= _elements.Where(x=>x.Children.Count != 0);
         var firstElement = _elements.FirstOrDefault(x=>x.Children.Count != 0);
         firstElement.Parent = null;
 
@@ -46,6 +60,39 @@ public class Assembly
 
         _elements.Clear();
         _elements.AddRange(sortedElements);
+    }
+
+    public void Sort(List<Element> elements)
+    {
+        if (elements.Count <= 1) return;
+
+        var firstElement1 = elements.Where(x => x.Children.Count != 0);
+        var firstElement = elements.FirstOrDefault(x => x.Children.Count != 0);
+        firstElement.Parent = null;
+
+        var sortedElements = elements.Skip(1)
+            .Where(e => e.Pos != null)
+            .ToList();
+
+        sortedElements.Sort((a, b) =>
+        {
+            int aDotCount = CountDots(a.Pos);
+            int bDotCount = CountDots(b.Pos);
+
+            if (aDotCount != bDotCount) return aDotCount.CompareTo(bDotCount);
+
+            return CompareDesignation(a.Designation, b.Designation);
+        });
+
+        var nullElements = elements.Skip(1)
+            .Where(e => e.Pos == null)
+            .ToList();
+
+        sortedElements.Insert(0, firstElement);
+        sortedElements.AddRange(nullElements);
+
+        elements.Clear();
+        elements.AddRange(sortedElements);
     }
 
     private int CountDots(string? pos)

@@ -5,7 +5,7 @@
         public const string DirectoryDialogDescription = "Выберите папку";
         public const string ExcelFileDialogFilter = "Excel Files (*.xls;*.xlsx)|*.xls;*.xlsx|All Files (*.*)|*.*";
         public const string HtmFileDialogFilter = "HTML Files (*.html;*.htm)|*.html;*.htm|All Files (*.*)|*.*";
-        public const string DefaultResultFileName = "Henkon_impl.xlsm";
+        public const string DefaultResultFileName = "Hencon_Imp.xlsm";
         
         public static Dictionary<string, string> Replacments;
 
@@ -20,15 +20,15 @@
         {
             Replacments = new Dictionary<string, string>
             {
-                { "BUY", "Buy" },
-                { "MAKE", "Make" },
+                { "BUY", "BUY" },
+                { "MAKE", "MAKE" },
 
             };
 
             BomMakePictures = new Dictionary<string, string>
             {
-                { "bom_make.gif", "Make" },
-                { "bom_buy.gif", "Buy" },
+                { "bom_make.gif", "MAKE" },
+                { "bom_buy.gif", "BUY" },
                 { "bom_nobom.gif", string.Empty },
             };
 

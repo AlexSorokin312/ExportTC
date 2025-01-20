@@ -1,7 +1,5 @@
 ﻿using ExportTC.Interfaces;
 using HenconExport.Model.Elemnts;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -21,7 +19,7 @@ namespace ExportTC.Model.ElementParcers
                 var newElement = new Element
                 {
                     Designation = line.Trim(),
-                    Children = new List<Element>()
+                    Children = new()
                 };
 
                 while (stack.Count > indentLevel)
@@ -137,9 +135,6 @@ namespace ExportTC.Model.ElementParcers
         private void FlattenElement(Element element, List<Element> flatList)
         {
 
-            if (element.Parent != null)
-                if (flatList.Any(x => x.Designation == element.Designation && x.Parent.Designation == element.Parent.Designation))
-                    return;
             flatList.Add(element);
             foreach (var child in element.Children)
             {

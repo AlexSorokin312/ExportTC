@@ -77,9 +77,12 @@ namespace ExportTC.ViewModel
                 if (string.IsNullOrWhiteSpace(value))
                     throw new ArgumentNullException(nameof(value), ErrorMessages.InvalidDirectoryPath);
 
+                DirectoryPath = value;
                 ExcelFilePath = _fileSearchService.Value.FindFirstExcelFile(value);
                 HtmFilePath = _fileSearchService.Value.FindHtmlFile(value);
+                SaveFilePath = value;
                 _initialData.Value.BaseDirectory = value;
+                _initialData.Value.SavePath = value;
             }
             catch (Exception ex)
             {

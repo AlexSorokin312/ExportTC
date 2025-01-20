@@ -29,7 +29,7 @@ namespace ExportTC
                 var mainWindow = ServiceProvider.GetService<MainWindow>();
                 if (mainWindow == null)
                 {
-                    AppLogger.LogFatal(new Exception("MainWindow не был зарегистрирован."), ErrorMessages.MainWindowStartupError);
+                    LoggerDebug.LogWarning("MainWindow не был зарегистрирован.");
                     throw new InvalidOperationException("MainWindow не был зарегистрирован.");
                 }
                 mainWindow.Show();
@@ -37,7 +37,7 @@ namespace ExportTC
             }
             catch (Exception ex)
             {
-                AppLogger.LogFatal(ex, ErrorMessages.ApplicationInitializationError);
+                LoggerDebug.LogCritical(ex.Message);
                 throw;
             }
 
@@ -67,6 +67,7 @@ namespace ExportTC
             services.AddSingleton<IHtmlReader, HtmlReader>();
             services.AddSingleton<IElementTreeBuilder, ElementTreeBuilder>();
             services.AddTransient<IExcelReader, ExcelReader>();
+            services.AddTransient<RecordManager>();
         }
 
         private void AddInitialDataServices(ServiceCollection services)

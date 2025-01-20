@@ -2,9 +2,7 @@
 using ExportTC.Extensions;
 using ExportTC.Interfaces;
 using HenconExport.Model.Elemnts;
-using System.IO;
-using System.Text.RegularExpressions;
-using System.Windows.Controls.Ribbon;
+using System.Diagnostics;
 
 namespace ExportTC.Model.ElementParcers
 {
@@ -14,97 +12,123 @@ namespace ExportTC.Model.ElementParcers
 
         public void FillDataFromHtml(string htmlPath, List<Element> treeElements)
         {
+            // Создание словаря для быстрого доступа
+            var elementsDict = treeElements
+                .Where(e => string.IsNullOrEmpty(e.Name))
+                .GroupBy(e => e.Designation)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Загрузка HTML-документа
             _htmlDocument = new HtmlAgilityPack.HtmlDocument();
             _htmlDocument.Load(htmlPath);
 
             var rows = _htmlDocument.DocumentNode.SelectNodes("//tr");
 
-            if (rows?.Count <= 0) return;
+            if (rows?.Count <= 0)
+                return;
 
             foreach (var row in rows)
             {
-                var cols = row.SelectNodes("td");
-                if (cols == null || cols.Count < 5) continue;
+                ProcessRow(row, elementsDict, htmlPath);
+            }
 
-                var designation = ExtractDesignation(cols[0].InnerHtml);
-                if (designation.Contains("448006350"))
+            // Параллельная обработка строк
+            /*Parallel.ForEach(rows, row =>
+            {
+                try
                 {
+                    ProcessRow(row, elementsDict, htmlPath);
 
                 }
-                var type = ExtractImageTypeFromColumn(cols[0].InnerHtml);
-                var elementsToUpdate = treeElements.Where(e => e.Designation == designation && string.IsNullOrEmpty(e.Name)).ToList();
-
-                if (elementsToUpdate.Count > 1)
+                catch (Exception ex)
                 {
-                    if (type == ElementConstants.DETAIL || type == ElementConstants.ASSEMBLY)
+                    // Логирование ошибки
+                    Console.WriteLine($"Ошибка при обработке строки: {ex.Message}");
+                }
+            });*/
+        }
+
+        private Dictionary<string, int> encounters = new();
+
+        private void ProcessRow(HtmlAgilityPack.HtmlNode row, Dictionary<string, List<Element>> elementsDict, string htmlPath)
+        {
+            var cols = row.SelectNodes("td");
+            if (cols == null || cols.Count < 5)
+                return;
+
+            var designation = FileNameExtactor.ExtractDesignation(cols[0].InnerHtml);
+            var type = ExtractImageTypeFromColumn(cols[0].InnerHtml);
+
+            // Проверяем, есть ли данные в словаре
+            if (elementsDict.TryGetValue(designation, out var elementsToUpdate) && elementsToUpdate != null)
+            {
+                // Копия для работы в потоке
+                var elementsLocalCopy = new List<Element>(elementsToUpdate);
+
+                if (elementsLocalCopy.Count > 1)
+                {
+                    if (type == ElementConstants.DETAIL || type == ElementConstants.ASSEMBLY || type == ElementConstants.GENERIC)
                     {
-                        var elementNoUpdate = elementsToUpdate.FirstOrDefault(x=>x.Children.Count == 0);
-                        elementsToUpdate.Remove(elementNoUpdate);
+                        var elementNoUpdate = elementsLocalCopy.FirstOrDefault(x => x.Children.Count == 0);
+
+                        var counts = encounters.FirstOrDefault(x => x.Key == designation).Value;
+                        var c = elementsToUpdate.Skip(counts);
+                        // Обновление элементов
+                        foreach (var elementToUpdate in c)
+                        {
+                            if (elementToUpdate != null)
+                            {
+                                UpdateElement(elementToUpdate, cols, type, designation, htmlPath);
+                            }
+                        }
+                        //if (elementNoUpdate != null && type != ElementConstants.GENERIC)
+                        //elementsLocalCopy.Remove(elementNoUpdate);
                     }
                     else
                     {
-                        var elementsNoUpdate = elementsToUpdate.Where(x => x.Children.Count > 0).ToList();
-                        elementsNoUpdate.ForEach(x => elementsToUpdate.Remove(x));
+                        var elementsNoUpdate = elementsLocalCopy.Where(x => x?.Children?.Count > 0).ToList();
+                        elementsNoUpdate.ForEach(x => elementsLocalCopy.Remove(x));
+                        // Обновление элементов
+                        foreach (var elementToUpdate in elementsLocalCopy)
+                        {
+                            if (elementToUpdate != null)
+                            {
+                                UpdateElement(elementToUpdate, cols, type, designation, htmlPath);
+                            }
+                        }
                     }
                 }
-
-                foreach (var elementToUpdate in elementsToUpdate)
+                else
                 {
-                    if (elementToUpdate != null)
+                    foreach (var elementToUpdate in elementsLocalCopy)
                     {
-                        elementToUpdate.DrawingIcon = type;
-                        elementToUpdate.Quantity = cols[1].InnerText;
-                        elementToUpdate.Name = cols[2].InnerText.Clean();
-                        elementToUpdate.MakeOrBuy = ExtractMakeOrBuyFromColumn(cols[3].InnerHtml);
-                        elementToUpdate.Revision = cols[4].InnerText.Clean();
-                        elementToUpdate.FileName = ExtractHrefValueFromColumn(cols[0].InnerHtml, htmlPath);
-                        elementToUpdate.ProductStatus = ExtractStatusFromColumn(cols[0].InnerHtml);
-                        elementToUpdate.Designation = designation;
-                        if (string.IsNullOrEmpty(elementToUpdate.Revision))
-                            elementToUpdate.Revision = "00";
+                        if (elementToUpdate != null)
+                        {
+                            UpdateElement(elementToUpdate, cols, type, designation, htmlPath);
+                        }
                     }
                 }
             }
-            var m = treeElements.FirstOrDefault(x => x.Designation.Contains("MG BORDER"));
+
+            var en = encounters.FirstOrDefault(x => x.Key == designation);
+            if (en.Key == null)
+                encounters.Add(designation, 1);
+            else
+                encounters[designation]++;
         }
 
-        private string ExtractDesignation(string innerHtml)
+        private void UpdateElement(Element element, HtmlAgilityPack.HtmlNodeCollection cols, string type, string designation, string htmlPath)
         {
-            if (innerHtml.Contains("448001671"))
-            {
-
-            }
-            var match = Regex.Match(innerHtml, @"<a.*?href=""\d+\.htm"".*?>(\d+)<\/a>");
-            return match.Success ? match.Groups[1].Value : "Unknown";
-        }
-
-        private string ExtractHrefValueFromColumn(string innerHtml, string htmlPath)
-        {
-            var match = Regex.Match(innerHtml, @"href=""(\d+\.htm)""");
-            var result = match.Success ? match.Groups[1].Value : null;
-
-            if (result == null)
-                return null;
-
-            string directory = Path.GetDirectoryName(htmlPath);
-
-            string foundFilePath = FindFileInSubdirectories(directory, result);
-            string extractedFileName = FileNameExtactor.ExtractFileNameFromText(foundFilePath);
-            return extractedFileName;
-        }
-
-        private string FindFileInSubdirectories(string directory, string fileName)
-        {
-            try
-            {
-                var files = Directory.GetFiles(directory, fileName, SearchOption.AllDirectories);
-                return files.FirstOrDefault();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка при поиске файла: {ex.Message}");
-                return null;
-            }
+            element.DrawingIcon = type;
+            element.Quantity = cols[1].InnerText;
+            element.Name = cols[2].InnerText.Clean();
+            element.MakeOrBuy = ExtractMakeOrBuyFromColumn(cols[3].InnerHtml);
+            element.Revision = cols[4].InnerText.Clean() ?? "00";
+            if (string.IsNullOrEmpty(element.Revision))
+                element.Revision = "00";
+            element.FileName = FileNameExtactor.ExtractHrefValueFromColumn(cols[0].InnerHtml, htmlPath);
+            element.ProductStatus = ExtractStatusFromColumn(cols[0].InnerHtml);
+            element.Designation = designation;
         }
 
         private static string ExtractStatusFromColumn(string innerHtml)
@@ -116,14 +140,5 @@ namespace ExportTC.Model.ElementParcers
         private string ExtractImageTypeFromColumn(string innerHtml)
             => CommonConstants.GetElementTypePicture(innerHtml);
 
-        private static string ExtractDrawingImageTypeFromColumn(string innerHtml)
-        {
-            if (innerHtml.Contains("ic_sw_drw2.png"))
-                return "ic_sw_drw2.png";
-            if (innerHtml.Contains("ic_inv_drw2.png"))
-                return "ic_inv_drw2.png";
-
-            return "-";
-        }
     }
 }

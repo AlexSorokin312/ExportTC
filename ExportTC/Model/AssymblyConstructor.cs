@@ -2,13 +2,21 @@
 using ExportTC.Model.ElementParcers;
 using ExportTC.Model.Factories;
 using HenconExport.Model.Elemnts;
+using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+
+public static class RootAssembly
+{
+   public static string value = string.Empty;
+} 
 
 namespace ExportTC.Model
 {
     internal class AssemblyConstructor
     {
+        public List<Element> savedElements = new();
+
         private readonly ExcelElementParser _excelElementParser;
         private readonly HtmlElementParser _htmlElementParcer;
         private readonly IFileSearchService _fileSearchService;
@@ -31,29 +39,51 @@ namespace ExportTC.Model
         public Assembly GetAssembly(InitialData initialData)
         {
             if (initialData == null)
+            {
+                LoggerDebug.LogError("InitialData передан как null.");
                 throw new ArgumentNullException(nameof(initialData));
+            }
 
+            LoggerDebug.LogInfo("Получение данных из Excel.");
             var excelElements = GetDataFromExcel(initialData);
+
+            LoggerDebug.LogInfo("Получение данных из HTML.");
             var htmlElements = GetDataFromHtml(initialData);
 
-            var filteredElements = htmlElements
-                .Where(e => !Regex.IsMatch(e.Designation, @"\b[А-ЯA-Z]\d+\b", RegexOptions.IgnoreCase))
-                .ToList();
+            //var m = htmlElements.FirstOrDefault();
+            //m.Designation = "111111111";
+            //m.Name = "111111111";
 
-            MergeExcelElementsWithHtmlData(excelElements, filteredElements);
+            LoggerDebug.LogInfo("Фильтрация элементов HTML на основе регулярного выражения.");
+            RootAssembly.value = excelElements.FirstOrDefault().Designation;
+            htmlElements = htmlElements
+               .Where(e => !Regex.IsMatch(e.Designation, @"\b[А-ЯA-Z]\d+\b", RegexOptions.IgnoreCase))
+               .ToList();
 
-            MatchQuantity(filteredElements, excelElements);
-            MakeAdditionalParamters(filteredElements, excelElements);
-            FillFileNames(filteredElements, initialData.BaseDirectory);
+            LoggerDebug.LogInfo("Слияние данных из Excel и HTML.");
+            MergeExcelElementsWithHtmlData(excelElements, htmlElements);
 
-            LinkDocumentsToDetails(filteredElements);
-            FindFiles(filteredElements, initialData);
-            var assembly = new Assembly(filteredElements);
+            MatchQuantity(htmlElements, excelElements);
 
-            var c = filteredElements.FirstOrDefault(x => x.Designation.Contains("440012793"));
+            LoggerDebug.LogInfo("Добавление дополнительных параметров.");
+            MakeAdditionalParamters(htmlElements, excelElements);
 
+            LoggerDebug.LogInfo("Заполнение имен файлов.");
+            FillFileNames(htmlElements, initialData.BaseDirectory);
+
+            LoggerDebug.LogInfo("Связывание документов с деталями.");
+            LinkDocumentsToDetails(htmlElements);
+
+            LoggerDebug.LogInfo("Поиск файлов для элементов.");
+            FindFiles(htmlElements, initialData);
+
+            LoggerDebug.LogInfo("Создание сборки на основе фильтрованных элементов.");
+            var assembly = new Assembly(htmlElements);
+
+            LoggerDebug.LogInfo("Сортировка элементов сборки.");
             assembly.Sort();
 
+            LoggerDebug.LogInfo("Сборка успешно создана.");
             return assembly;
         }
 
@@ -65,8 +95,8 @@ namespace ExportTC.Model
 
                 if (element == null)
                 {
-                    if (htmlElement.Parent != null) 
-                    { 
+                    if (htmlElement.Parent != null)
+                    {
                         var parentDesignation = htmlElement.Parent.Designation;
                         var excelParent = elements.FirstOrDefault(x => x.Designation == parentDesignation);
                         var ad = elements.Where(x => x.Designation == parentDesignation);
@@ -131,16 +161,12 @@ namespace ExportTC.Model
         {
             foreach (var element in htmlElements)
             {
-                if (element.Designation.Contains("449701658"))
-                {
-
-                }
                 if (element.Parent == null)
                 {
                     element.AssemblyFile = _parametersDefinder.DefineRootElementAssembly(element);
                     continue;
                 }
-                var excelElement = excelElements.FirstOrDefault(x=>!x.Root && x.Designation == element.Designation && x.Parent.Designation == element.Parent.Designation);
+                var excelElement = excelElements.FirstOrDefault(x => !x.Root && x.Designation == element.Designation && x.Parent.Designation == element.Parent.Designation);
                 if (excelElement != null)
                 {
 
@@ -157,108 +183,198 @@ namespace ExportTC.Model
                     element.Quantity = "1";
                 }
 
-               element.TreeType = _parametersDefinder.DefineElementType(element);
+                element.TreeType = _parametersDefinder.DefineElementType(element);
                 _parametersDefinder.DefineFiles(element);
             }
-
-
-
         }
 
+        //На случай если нужно будет читать данные о количестве из excel
         private void MatchQuantity(List<Element> htmlElements, List<Element> excelElements)
         {
-            foreach (var element in htmlElements)
+            /*foreach (var element in htmlElements)
             {
                 if (element.Parent == null)
                     continue;
 
 
-                var excelElement = excelElements.FirstOrDefault(x=>!x.Root && x.Designation == element.Designation && x.Parent.Designation == element.Parent.Designation);
+                var excelElement = excelElements.FirstOrDefault(x => !x.Root && x.Designation == element.Designation && x.Parent.Designation == element.Parent.Designation);
                 if (excelElement != null)
-                    element.Quantity = excelElement.Quantity;
+                {
+
+                    if (element.Quantity != excelElement.Quantity) ;
+
+                }
                 else
                     element.Quantity = "1";
-            }
+            }*/
         }
 
         private void FillFileNames(List<Element> collection, string baseDirectory)
         {
-            foreach (var element in collection)
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+
+            // Параллельная обработка коллекции
+            Parallel.ForEach(collection, element =>
             {
                 var designation = element.Designation;
 
+                // Поиск деталей
                 var foundDetails = _fileSearchService.FindFilesWithCriteria(baseDirectory, designation, ".SLDPRT").FirstOrDefault();
                 if (!string.IsNullOrEmpty(foundDetails))
                 {
                     var fileName = Path.GetFileName(foundDetails);
                     element.PartFile = fileName;
                 }
+
+                // Поиск сборок
                 var foundAssemblies = _fileSearchService.FindFilesWithCriteria(baseDirectory, designation, ".SLDASM").FirstOrDefault();
                 if (!string.IsNullOrEmpty(foundAssemblies))
                 {
                     var fileName = Path.GetFileName(foundAssemblies);
                     element.AssemblyFile = fileName;
                 }
-            }
-        }
+            });
 
+            watch.Stop();
+            Console.WriteLine($"Метод выполнен за {watch.ElapsedMilliseconds} ms");
+        }
         private void LinkDocumentsToDetails(List<Element> elements)
         {
-            // Создаем список для удаления
             var elementsToRemove = new List<Element>();
 
             foreach (var element in elements)
             {
                 if (element.Children?.Count > 0)
                 {
-                    foreach (var child in element.Children)
-                    {
-                        if (child.DrawingIcon == ElementConstants.PDF)
-                        {
-                            child.PDFFile = string.Format("{0}.{1}", child.Designation, "pdf");
-                            child.Designation = element.Designation;
-                            child.Name = element.Name;
-                            child.Parent = element.Parent;
-                            child.Revision = element.Revision;
-                            CacheFileNames.fileNames.Add(child.FileName);
-                        }
-                        else if (child.DrawingIcon == ElementConstants.DOC)
-                        {
-                            if (child.FileName.Contains("docx"))
-                            {
-                                child.DocxFile = string.Format("{0}.{1}", child.Designation, "docx");
-                            }
-                            else
-                            {
-                                child.DocFile = string.Format("{0}.{1}", child.Designation, "doc");
-                            }
+                    // Элементы с пустым FileName оставляем как есть
+                    var childrenWithoutFileName = element.Children
+                        .Where(c => string.IsNullOrEmpty(c.FileName))
+                        .ToList();
 
-                            child.Designation = element.Designation;
-                            child.Name = element.Name;
-                            child.Parent = element.Parent;
-                            child.Revision = element.Revision;
-                            CacheFileNames.fileNames.Add(child.FileName);
-                        }
-                        else if (child.DrawingIcon == ElementConstants.GIF)
+                    // Элементы с заполненным FileName группируем, чтобы оставить уникальные
+                    var uniqueChildrenWithFileName = element.Children
+                        .Where(c => !string.IsNullOrEmpty(c.FileName))
+                        .GroupBy(c => c.FileName)
+                        .Select(g => g.First())
+                        .ToList();
+
+                    // Объединяем обе коллекции: уникальные с FileName + те, у кого FileName пустой
+                    element.Children = uniqueChildrenWithFileName.Concat(childrenWithoutFileName).ToList();
+                    foreach (var uniqueChild in element.Children)
+                    {
+                        if (uniqueChild.DrawingIcon == null)
                         {
-                            child.JpegFile = string.Format("{0}.{1}", child.Designation, "jpg");
-                            child.Designation = element.Designation;
-                            child.Name = element.Name;
-                            child.Parent = element.Parent;
-                            child.Revision = element.Revision;
-                            CacheFileNames.fileNames.Add(child.FileName);
+                            var previos = elements.FirstOrDefault(x=>x.Designation == uniqueChild.Designation);
+                            uniqueChild.DrawingIcon = previos?.DrawingIcon;
                         }
+                        HandleChild(element, uniqueChild);
                     }
                 }
             }
+        }
 
+        private void HandleChild(Element parent, Element child)
+        {
+            if (child.DrawingIcon == ElementConstants.PDF)
+            {
+                child.PDFFile = string.Format("{0}.{1}", child.Designation, "pdf");
+                child.Designation = parent.Designation;
+                child.Name = parent.Name;
+                child.Parent = parent.Parent ?? parent;
+                child.Revision = parent.Revision;
+                CacheFileNames.fileNames.Add(child.FileName);
+            }
+            else if (child.DrawingIcon == ElementConstants.DOC)
+            {
+                if (child.FileName.Contains("docx"))
+                {
+                    child.DocxFile = string.Format("{0}.{1}", child.Designation, "docx");
+                }
+                else
+                {
+                    child.DocFile = string.Format("{0}.{1}", child.Designation, "doc");
+                }
 
+                child.Designation = parent.Designation;
+                child.Name = parent.Name;
+                child.Parent = parent.Parent ?? parent;
+                child.Revision = parent.Revision;
+                CacheFileNames.fileNames.Add(child.FileName);
+
+            }
+            else if (child.DrawingIcon == ElementConstants.GIF)
+            {
+                child.JpegFile = string.Format("{0}.{1}", child.Designation, "jpg");
+                child.Designation = parent.Designation;
+                child.Name = parent.Name;
+                child.Parent = parent.Parent ?? parent;
+                child.Revision = parent.Revision;
+                CacheFileNames.fileNames.Add(child.FileName);
+            }
+            else if (child.DrawingIcon == ElementConstants.ZIP)
+            {
+                child.ZipFile = string.Format("{0}.{1}", child.Designation, "zip");
+                child.Designation = parent.Designation;
+                child.Name = parent.Name;
+                child.Parent = parent.Parent ?? parent;
+                child.Revision = parent.Revision;
+                CacheFileNames.fileNames.Add(child.FileName);
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(child.FileName))
+                {
+                    if (child.FileName.Contains("xl"))
+                    {
+                        child.ExcelFile = string.Format("{0}.{1}", child.Designation, "xlsm");
+                        child.Designation = parent.Designation;
+                        child.Name = parent.Name;
+                        child.Parent = parent.Parent ?? parent;
+                        child.Revision = parent.Revision;
+                        CacheFileNames.fileNames.Add(child.FileName);
+                    }
+                    else if (child.FileName.Contains("rar"))
+                    {
+                        child.ZipFile = string.Format("{0}.{1}", child.Designation, "rar");
+                        child.Designation = parent.Designation;
+                        child.Name = parent.Name;
+                        child.Parent = parent.Parent ?? parent;
+                        child.Revision = parent.Revision;
+                        CacheFileNames.fileNames.Add(child.FileName);
+                    }
+                    else if (child.FileName.Contains("jpg"))
+                    {
+                        child.JpegFile = string.Format("{0}.{1}", child.Designation, "jpg");
+                        child.Designation = parent.Designation;
+                        child.Name = parent.Name;
+                        child.Parent = parent.Parent ?? parent;
+                        child.Revision = parent.Revision;
+                        CacheFileNames.fileNames.Add(child.FileName);
+                    }
+                    else if (child.FileName.Contains("htm"))
+                    {
+                        child.Html = string.Format("{0}.{1}", child.Designation, "htm");
+                        child.Designation = parent.Designation;
+                        child.Name = parent.Name;
+                        child.Parent = parent.Parent ?? parent;
+                        child.Revision = parent.Revision;
+                        CacheFileNames.fileNames.Add(child.FileName);
+                    }
+                    if (child.FileName.Contains("dwg"))
+                    {
+         
+                    }
+                }
+            }
         }
 
         private void FindFiles(List<Element> elements, InitialData initialData)
         {
             var baseDirectory = initialData.BaseDirectory;
-            foreach (var element in elements)
+
+            // Параллельная обработка элементов
+            Parallel.ForEach(elements, element =>
             {
                 if (element.DrawingIcon == ElementConstants.DETAIL || element.DrawingIcon == ElementConstants.ASSEMBLY)
                 {
@@ -266,6 +382,7 @@ namespace ExportTC.Model
                     foreach (var matchingFile in matchingFiles)
                     {
                         var fileName = Path.GetFileName(matchingFile);
+
                         if (matchingFile.Contains("EA"))
                             element.EADrawingFile = fileName;
                         else if (matchingFile.Contains("RE"))
@@ -276,7 +393,7 @@ namespace ExportTC.Model
                             element.DrawingFile = fileName;
                     }
                 }
-            }
+            });
         }
     }
 }

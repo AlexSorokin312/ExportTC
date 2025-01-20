@@ -21,7 +21,7 @@ namespace ExportTC.Model.ElementParcers
 
             allElements.FirstOrDefault().Root = true;
             _reader.FillDataFromHtml(htmlPath, elements);
-           
+
             return elements;
         }
 

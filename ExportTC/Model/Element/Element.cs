@@ -27,6 +27,7 @@ namespace HenconExport.Model.Elemnts
         public string? DocxFile { get; set; }
         public string? JpegFile { get; set; }
         public string? PDFFile { get; set; }
+        public string? Html { get; set; }
         public string? FileName { get; set; }
         public string? DrawingIcon { get; set; }
         public Element Parent { get; set; }
@@ -37,6 +38,7 @@ namespace HenconExport.Model.Elemnts
         public string? Costtype { get; set; }
         public string? Spare { get; set; }
         public string? AddInfo { get; set; }
+        public string? ExcelFile { get; set; }
 
         public Element(string designation, string assembly)
         {

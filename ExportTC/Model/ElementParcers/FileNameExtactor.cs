@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text.RegularExpressions;
 
 public static class FileNameExtactor
 {
@@ -25,5 +26,40 @@ public static class FileNameExtactor
             }
         }
         return null;
+    }
+
+    public static string ExtractDesignation(string innerHtml)
+    {
+        var match = Regex.Match(innerHtml, @"<a.*?href=""\d+\.htm"".*?>(\d+)<\/a>");
+        return match.Success ? match.Groups[1].Value : "Unknown";
+    }
+
+    public static string ExtractHrefValueFromColumn(string innerHtml, string htmlPath)
+    {
+        var match = Regex.Match(innerHtml, @"href=""(\d+\.htm)""");
+        var result = match.Success ? match.Groups[1].Value : null;
+
+        if (result == null)
+            return null;
+
+        string directory = Path.GetDirectoryName(htmlPath);
+
+        string foundFilePath = FindFileInSubdirectories(directory, result);
+        string extractedFileName = FileNameExtactor.ExtractFileNameFromText(foundFilePath);
+        return extractedFileName;
+    }
+
+    public static string FindFileInSubdirectories(string directory, string fileName)
+    {
+        try
+        {
+            var files = Directory.GetFiles(directory, fileName, SearchOption.AllDirectories);
+            return files.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при поиске файла: {ex.Message}");
+            return null;
+        }
     }
 }

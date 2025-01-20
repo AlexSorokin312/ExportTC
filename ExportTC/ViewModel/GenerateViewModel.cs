@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using System.Xml.Linq;
 
 namespace ExportTC.ViewModel
 {
@@ -50,6 +51,7 @@ namespace ExportTC.ViewModel
             set => SetProperty(ref _selectedComboBoxItem, value);
         }
         public ICommand StartProcessCommand { get; }
+        public ICommand GenerateCommand { get; }
 
         public GenerateViewModel()
         {
@@ -61,16 +63,10 @@ namespace ExportTC.ViewModel
                 _fileSearchService = App.ServiceProvider.GetService<IFileSearchService>()
                                    ?? throw new InvalidOperationException(ErrorMessages.FileSearchServiceError);
 
-                ComboBoxItems = new ObservableCollection<string> {
-                    "Структура изделия (с матрицей)",
-                    "Структура изделия с заменами",
-                    "Структура (наборы данных)" };
-
-                SelectedComboBoxItem = ComboBoxItems[1];
-
-                DisplayTree();
-                FindGenericFiles();
+                if (RootElements.Count != 0)
+                    return;
                 StartProcessCommand = new AsyncRelayCommand(SaveToExcelFileAsync);
+                GenerateCommand = new AsyncRelayCommand(DisplayTree);
 
                 AppLogger.LogInformation("GenerateViewModel initialized successfully.");
             }
@@ -84,9 +80,13 @@ namespace ExportTC.ViewModel
         private void FindGenericFiles()
         {
             var path = _initialData.GenericFilePath; // Исходная директория поиска
-            if (string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+            {
+                LoggerDebug.LogWarning("Не найдена директория Generic-файлов");
                 return;
-            string directoryToSave = Path.Combine(_initialData.BaseDirectory, "Henkon_imp");// Задайте путь к директории для сохранения
+            }
+
+            string directoryToSave = Path.Combine(_initialData.BaseDirectory, "Hencon_Imp");// Задайте путь к директории для сохранения
             var cacheFileNames = CacheFileNames.fileNames;
 
             if (!Directory.Exists(directoryToSave))
@@ -94,11 +94,12 @@ namespace ExportTC.ViewModel
                 Directory.CreateDirectory(directoryToSave);
             }
 
-            foreach (var fileName in cacheFileNames)
+            Parallel.ForEach(cacheFileNames, fileName =>
             {
-                var files = Directory.GetFiles(path, fileName, SearchOption.AllDirectories);
+                var matchingFiles = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
+                                             .Where(f => string.Equals(Path.GetFileName(f), fileName, StringComparison.OrdinalIgnoreCase));
 
-                foreach (var file in files)
+                foreach (var file in matchingFiles)
                 {
                     string destinationPath = Path.Combine(directoryToSave, Path.GetFileName(file));
 
@@ -112,26 +113,29 @@ namespace ExportTC.ViewModel
                         Console.WriteLine($"Ошибка при копировании файла {file}: {ex.Message}");
                     }
                 }
-            }
+            });
         }
 
 
-        public void DisplayTree()
+
+        public async Task DisplayTree()
         {
+            if (RootElements.Count > 0)
+                return;
             try
             {
                 var assemblyFiller = App.ServiceProvider.GetService<AssemblyConstructor>()
                                    ?? throw new InvalidOperationException(ErrorMessages.ViewModelInitializationError);
 
                 _assembly = assemblyFiller.GetAssembly(_initialData);
-                var rootElements = _assembly.GetRootElements();
+                var rootElement = _assembly.GetRootElement();
 
                 RootElements.Clear();
-                foreach (var element in rootElements)
-                {
-                    RootElements.Add(element);
-                }
-
+                //foreach (var element in rootElements)
+                //{
+                RootElements.Add(rootElement);
+                //}
+                FindGenericFiles();
                 AppLogger.LogInformation("Tree successfully displayed.");
             }
             catch (Exception ex)
@@ -144,17 +148,25 @@ namespace ExportTC.ViewModel
 
         public async Task SaveToExcelFileAsync()
         {
+            if (_assembly == null)
+                return;
             IsProgressVisible = true;
             ProgressValue = 0;
 
-            string savePath = _initialData.SavePath;
-            string outputPath = Path.Combine(savePath, CommonConstants.DefaultResultFileName);
 
-            // Копируем ресурс в новый файл
+            string savePath = _initialData.SavePath;
+            if (File.Exists(Path.Combine(savePath, "Hencon_Impl.xlsm"))) ;
             try
             {
-               // using (var resourceStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/henkon_imp.xlsm")).Stream)
-                using (var resourceStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/Henkon_imp 1.xlsm")).Stream)
+                File.Delete(savePath);
+            }
+            catch
+            {
+            }
+            string outputPath = Path.Combine(savePath, CommonConstants.DefaultResultFileName);
+            try
+            {
+                using (var resourceStream = Application.GetResourceStream(new Uri("pack://application:,,,/Resources/Hencon_Impl.xlsm")).Stream)
                 {
                     using (var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
                     {
@@ -164,13 +176,11 @@ namespace ExportTC.ViewModel
             }
             catch (IOException ex)
             {
-                // Обработка ошибки, если файл занят другим процессом (например, открыт в Excel)
-                AppLogger.LogError(ex,ErrorMessages.ErrorExcelFIleIsBusy);
+                AppLogger.LogError(ex, ErrorMessages.ErrorExcelFIleIsBusy);
                 ShowErrorMessage("Файл Excel уже открыт. Пожалуйста, закройте его и попробуйте снова.");
                 return;
             }
 
-            // Записываем данные
             try
             {
                 using (var excelWriter = new ExcelWriter(outputPath))
@@ -178,11 +188,18 @@ namespace ExportTC.ViewModel
                     var worksheet = excelWriter.GetWorksheet(2);
                     int row = 3;
                     var elements = _assembly.Elements;
-                    int totalElements = elements.Count;
+                    var flattenElements = FlattenElements(_assembly.GetRootElement());
+                    _assembly.Sort(flattenElements);
+                    int totalElements = flattenElements.Count;
 
                     for (int i = 0; i < totalElements; i++)
                     {
-                        WriteElementToExcel(excelWriter, worksheet, row, elements[i]);
+                        if (!string.IsNullOrEmpty(flattenElements[i].FileName))
+                        {
+                            if (flattenElements[i].FileName.Contains("dwg"))
+                                continue;
+                        }
+                        WriteElementToExcel(excelWriter, worksheet, row, flattenElements[i]);
                         row++;
 
                         // Обновляем прогресс
@@ -211,6 +228,7 @@ namespace ExportTC.ViewModel
 
         private void WriteElementToExcel(ExcelWriter excelWriter, ExcelWorksheet worksheet, int row, Element element)
         {
+
             if (element.Parent != null)
                 excelWriter.WriteCell(worksheet, row, 1, element.Parent.Designation);
             excelWriter.WriteCell(worksheet, row, 2, "Элемент");
@@ -226,14 +244,16 @@ namespace ExportTC.ViewModel
             {
                 excelWriter.WriteCell(worksheet, row, 6, element.Designation);
             }
-
             excelWriter.WriteCell(worksheet, row, 10, element.Revision);
             excelWriter.WriteCell(worksheet, row, 14, element.Designation);
             excelWriter.WriteCell(worksheet, row, 15, element.Designation + "-" + element.Revision);
-            if (element.Parent != null) 
+            if (element.Parent != null)
                 excelWriter.WriteCell(worksheet, row, 16, string.Format("{0}-{1}.{2}-{3}", element.Parent.Designation, element.Parent.Revision, element.Designation, element.Revision));
-            excelWriter.WriteCell(worksheet, row, 19, element.DocFile);
-            excelWriter.WriteCell(worksheet, row, 20, element.DocxFile);
+            if (!string.IsNullOrEmpty(element.DocFile))
+                excelWriter.WriteCell(worksheet, row, 19, element.DocFile);
+            if (!string.IsNullOrEmpty(element.DocxFile))
+                excelWriter.WriteCell(worksheet, row, 20, element.DocxFile);
+            excelWriter.WriteCell(worksheet, row, 21, element.ExcelFile);
             excelWriter.WriteCell(worksheet, row, 24, element.PDFFile);
             excelWriter.WriteCell(worksheet, row, 26, element.PartFile);
             excelWriter.WriteCell(worksheet, row, 27, element.AssemblyFile);
@@ -253,6 +273,26 @@ namespace ExportTC.ViewModel
             excelWriter.WriteCell(worksheet, row, 40, Path.GetFileNameWithoutExtension(element.PDFFile));
             excelWriter.WriteCell(worksheet, row, 41, Path.GetFileNameWithoutExtension(element.JpegFile));
             excelWriter.WriteCell(worksheet, row, 42, Path.GetFileNameWithoutExtension(element.ZipFile));
+            if (!string.IsNullOrWhiteSpace(element.DocFile))
+                excelWriter.WriteCell(worksheet, row, 43, Path.GetFileNameWithoutExtension(element.DocFile));
+            if (!string.IsNullOrWhiteSpace(element.DocxFile))
+                excelWriter.WriteCell(worksheet, row, 43, Path.GetFileNameWithoutExtension(element.DocxFile));
+            excelWriter.WriteCell(worksheet, row, 44, Path.GetFileNameWithoutExtension(element.ExcelFile));
+            excelWriter.WriteCell(worksheet, row, 45, element.AddInfo);
+        }
+
+        public List<Element> FlattenElements(Element element)
+        {
+            List<Element> flatList = new List<Element>();
+
+            flatList.Add(element);
+
+            foreach (var child in element.Children)
+            {
+                flatList.AddRange(FlattenElements(child));
+            }
+
+            return flatList;
         }
     }
 }

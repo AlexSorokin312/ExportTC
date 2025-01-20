@@ -25,7 +25,9 @@ namespace ExportTC.Model
             {
                 ElementConstants.DETAIL => ElementConstants.DETAIL,
                 ElementConstants.ASSEMBLY => ElementConstants.ASSEMBLY,
-                _ => ElementConstants.DRAFT,
+                ElementConstants.GENERIC => ElementConstants.BOM,
+                ElementConstants.DRAFT => ElementConstants.DRAFT,
+                _ => ElementConstants.BOM,
             };
         }
 
@@ -36,9 +38,10 @@ namespace ExportTC.Model
 
         public string DefineSpare(string spare)
         {
-            if (string.IsNullOrEmpty(spare)) return string.Empty;
+            if (string.IsNullOrEmpty(spare))
+                return string.Empty;
 
-            spare = spare.Replace(';', ' ');
+
 
             return spare switch
             {
@@ -57,7 +60,6 @@ namespace ExportTC.Model
         {
             var fileName = element.FileName;
 
-            // Преобразуем имя файла в нижний регистр для унификации
             var fileExtension = Path.GetExtension(fileName)?.ToLower();
 
             if (fileExtension != null && fileTypeActions.ContainsKey(fileExtension))
@@ -66,8 +68,7 @@ namespace ExportTC.Model
             }
             else
             {
-                // Обработка для неизвестных типов файлов
-                Console.WriteLine($"Неизвестный файл: {fileName}");
+              
             }
         }
     }

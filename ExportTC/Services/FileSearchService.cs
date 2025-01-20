@@ -7,6 +7,13 @@ public class FileSearchService : IFileSearchService
         return Directory.EnumerateFiles(directoryPath, "*.xls*", SearchOption.AllDirectories).FirstOrDefault();
     }
 
+    public string? FindFirstExcelFileNotHencon(string directoryPath)
+    {
+        return Directory
+            .EnumerateFiles(directoryPath, "*.xls*", SearchOption.AllDirectories)
+            .FirstOrDefault(file => !Path.GetFileName(file).Contains("Hencon_Imp", StringComparison.OrdinalIgnoreCase));
+    }
+
     public string? FindHtmlFile(string directoryPath)
     {
         return Directory.EnumerateFiles(directoryPath, "tree.htm", SearchOption.AllDirectories).FirstOrDefault();

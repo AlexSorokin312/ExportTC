@@ -17,11 +17,13 @@ namespace ExportTC.Model
             _initialData = initialData;
             try
             {
+                LoggerDebug.LogInfo("Инициализация InitialDataSetter.");
                 _excelReader = _factory.Create(initialData.ExcelFile);
+                LoggerDebug.LogDebug("ExcelReader успешно создан.");
             }
             catch (Exception ex)
             {
-                AppLogger.LogError(ex, ErrorMessages.InitialDataSetterServiceError);
+                LoggerDebug.LogError($"Ошибка при создании ExcelReader: {ex.Message}");
                 throw new InvalidOperationException(ErrorMessages.InitialDataSetterServiceError, ex);
             }
         }
@@ -32,11 +34,13 @@ namespace ExportTC.Model
 
             try
             {
+                LoggerDebug.LogInfo("Проверка инициализации ExcelReader.");
                 _excelReader = _factory.Create(_initialData.ExcelFile);
+                LoggerDebug.LogDebug("ExcelReader успешно инициализирован.");
             }
             catch (Exception ex)
             {
-                AppLogger.LogError(ex, ErrorMessages.InitialDataSetterServiceError);
+                LoggerDebug.LogError($"Ошибка при повторной инициализации ExcelReader: {ex.Message}");
                 throw new InvalidOperationException(ErrorMessages.InitialDataSetterServiceError, ex);
             }
         }
@@ -45,16 +49,18 @@ namespace ExportTC.Model
         {
             try
             {
+                LoggerDebug.LogInfo($"Обработка столбцов: лист {sheetNumber}, строка заголовка {headerRowNumber}.");
                 for (int col = 1; col <= 40; col++)
                 {
                     string columnName = ExcelColumnFromNumber(col);
                     string cellValue = _excelReader.ReadCell(sheetNumber, columnName, headerRowNumber);
                     AssignColumnNames(cellValue, columnName);
                 }
+                LoggerDebug.LogDebug("Столбцы успешно обработаны.");
             }
             catch (Exception ex)
             {
-                AppLogger.LogError(ex, ErrorMessages.InitialDataSetterServiceError);
+                LoggerDebug.LogError($"Ошибка при обработке столбцов: {ex.Message}");
                 throw new InvalidOperationException(ErrorMessages.InitialDataSetterServiceError, ex);
             }
         }
@@ -63,6 +69,7 @@ namespace ExportTC.Model
         {
             try
             {
+                LoggerDebug.LogInfo("Подготовка данных начата.");
                 EnsureReaderInitialized();
 
                 var headerRowNumber = GetHeaderRowNumber();
@@ -72,10 +79,11 @@ namespace ExportTC.Model
 
                 var lastRow = GetLastUsedRow();
                 _initialData.EndRow = lastRow;
+                LoggerDebug.LogInfo("Данные успешно подготовлены.");
             }
             catch (Exception ex)
             {
-                AppLogger.LogError(ex, ErrorMessages.InitialDataSetterServiceError);
+                LoggerDebug.LogError($"Ошибка при подготовке данных: {ex.Message}");
                 throw new InvalidOperationException(ErrorMessages.InitialDataSetterServiceError, ex);
             }
         }
@@ -84,27 +92,32 @@ namespace ExportTC.Model
         {
             try
             {
+                LoggerDebug.LogInfo("Определение последней использованной строки.");
                 var lastRow = _excelReader.GetLastUsedRow(_initialData.SheetNumber,
                                                           _initialData.DesignationColumn,
                                                           _initialData.StartRow);
+                LoggerDebug.LogDebug($"Последняя использованная строка: {lastRow}");
                 return lastRow;
             }
             catch (Exception ex)
             {
-                AppLogger.LogError(ex, ErrorMessages.InitialDataSetterServiceError);
+                LoggerDebug.LogError($"Ошибка при определении последней строки: {ex.Message}");
                 throw new InvalidOperationException(ErrorMessages.InitialDataSetterServiceError, ex);
             }
         }
 
         private int GetHeaderRowNumber()
         {
-            return _initialData.HeaderRow == 0 ? DefaultReadSettings.HEADER_ROW_NUMBER : _initialData.HeaderRow;
+            var headerRow = _initialData.HeaderRow == 0 ? DefaultReadSettings.HEADER_ROW_NUMBER : _initialData.HeaderRow;
+            LoggerDebug.LogDebug($"Номер строки заголовка: {headerRow}");
+            return headerRow;
         }
 
         private void AssignColumnNames(string cellValue, string columnName)
         {
             try
             {
+                LoggerDebug.LogInfo($"Назначение имени столбца: {cellValue}, колонка: {columnName}.");
                 var columnMap = new Dictionary<string, Action<string>>
                 {
                     { ColumnNameConstants.POS, value => _initialData.PositionColumn = columnName },
@@ -123,15 +136,16 @@ namespace ExportTC.Model
                 if (columnMap.ContainsKey(cellValue))
                 {
                     columnMap[cellValue](cellValue);
+                    LoggerDebug.LogDebug($"Назначено значение для столбца: {cellValue} -> {columnName}");
                 }
                 else
                 {
-                    AppLogger.LogError(new Exception($"Неизвестный столбец: {cellValue}"), ErrorMessages.InvalidExcelFilePath);
+                    LoggerDebug.LogError($"Неизвестный столбец: {cellValue}");
                 }
             }
             catch (Exception ex)
             {
-                AppLogger.LogError(ex, ErrorMessages.InitialDataSetterServiceError);
+                LoggerDebug.LogError($"Ошибка при назначении имени столбца: {ex.Message}");
                 throw new InvalidOperationException(ErrorMessages.InitialDataSetterServiceError, ex);
             }
         }
@@ -140,6 +154,7 @@ namespace ExportTC.Model
         {
             try
             {
+                LoggerDebug.LogInfo($"Преобразование номера столбца в имя: {column}");
                 string columnString = string.Empty;
                 while (column > 0)
                 {
@@ -148,11 +163,12 @@ namespace ExportTC.Model
                     columnString = currentLetter + columnString;
                     column = (column - (currentLetterNumber + 1)) / 26;
                 }
+                LoggerDebug.LogDebug($"Имя столбца: {columnString}");
                 return columnString;
             }
             catch (Exception ex)
             {
-                AppLogger.LogError(ex, ErrorMessages.InitialDataSetterServiceError);
+                LoggerDebug.LogError($"Ошибка при преобразовании номера столбца: {ex.Message}");
                 throw new InvalidOperationException(ErrorMessages.InitialDataSetterServiceError, ex);
             }
         }

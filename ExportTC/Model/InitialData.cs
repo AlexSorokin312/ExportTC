@@ -45,6 +45,7 @@ namespace ExportTC.Model
 
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             SavePath = Path.Combine(desktopPath);
+            GenericFilePath = @"T:\Data\GENERIC";
         }
     }
 }

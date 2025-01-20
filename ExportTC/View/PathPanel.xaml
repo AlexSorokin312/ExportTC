@@ -125,7 +125,7 @@
             <GroupBox.Header>
                 <StackPanel Orientation="Horizontal">
                     <Label Style="{StaticResource DescriptionLabel}">Директория для сохранения файла plmxml:</Label>
-                    <Image Source="/ExportTC;component/Resources/tooltip.png" Width="16" Height="16" Margin="5,0,0,0" ToolTip="Путь к HTML-файлу с названием tree.htm. Поле заполнится автоматически, если задана исходная директория и файл находится в ней" />
+                    <Image Source="/ExportTC;component/Resources/tooltip.png" Width="16" Height="16" Margin="5,0,0,0" ToolTip="Директория, куда будет сохранен результат работы программы - файл plmxml" />
                 </StackPanel>
             </GroupBox.Header>
             <Grid>
@@ -148,7 +148,7 @@
             <GroupBox.Header>
                 <StackPanel Orientation="Horizontal">
                     <Label Style="{StaticResource DescriptionLabel}">Директория хранения Generic-файлов:</Label>
-                    <Image Source="/ExportTC;component/Resources/tooltip.png" Width="16" Height="16" Margin="5,0,0,0" ToolTip="Путь к HTML-файлу с названием tree.htm. Поле заполнится автоматически, если задана исходная директория и файл находится в ней" />
+                    <Image Source="/ExportTC;component/Resources/tooltip.png" Width="16" Height="16" Margin="5,0,0,0" ToolTip="Директория, где хранятся все Generic-файлы" />
                 </StackPanel>
             </GroupBox.Header>
             <Grid Cursor="">
