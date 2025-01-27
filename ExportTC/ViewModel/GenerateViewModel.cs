@@ -18,6 +18,7 @@ namespace ExportTC.ViewModel
     internal class GenerateViewModel : ObservableObject
     {
         private InitialData _initialData;
+        private RecordManager _recodManager;
         private IFileSearchService _fileSearchService;
         private Assembly _assembly;
         public ObservableCollection<Element> RootElements { get; private set; } = new ObservableCollection<Element>();
@@ -67,7 +68,8 @@ namespace ExportTC.ViewModel
                     return;
                 StartProcessCommand = new AsyncRelayCommand(SaveToExcelFileAsync);
                 GenerateCommand = new AsyncRelayCommand(DisplayTree);
-
+                _recodManager = App.ServiceProvider.GetService<RecordManager>()
+                    ?? throw new InvalidOperationException(ErrorMessages.InitialDataServiceError);
                 AppLogger.LogInformation("GenerateViewModel initialized successfully.");
             }
             catch (Exception ex)
@@ -188,18 +190,16 @@ namespace ExportTC.ViewModel
                     var worksheet = excelWriter.GetWorksheet(2);
                     int row = 3;
                     var elements = _assembly.Elements;
-                    var flattenElements = FlattenElements(_assembly.GetRootElement());
-                    _assembly.Sort(flattenElements);
-                    int totalElements = flattenElements.Count;
+
+                    //var flattenElements = FlattenElements(_assembly.GetRootElement());
+                    //var c = flattenElements.FirstOrDefault(x => x.Designation == "448500091");
+
+                    //_assembly.Sort(elements);
+                    int totalElements = elements.Count;
 
                     for (int i = 0; i < totalElements; i++)
                     {
-                        if (!string.IsNullOrEmpty(flattenElements[i].FileName))
-                        {
-                            if (flattenElements[i].FileName.Contains("dwg"))
-                                continue;
-                        }
-                        WriteElementToExcel(excelWriter, worksheet, row, flattenElements[i]);
+                        WriteElementToExcel(excelWriter, worksheet, row, elements[i]);
                         row++;
 
                         // Обновляем прогресс
@@ -228,7 +228,10 @@ namespace ExportTC.ViewModel
 
         private void WriteElementToExcel(ExcelWriter excelWriter, ExcelWorksheet worksheet, int row, Element element)
         {
+            if (element.Designation == "448500091")
+            {
 
+            }
             if (element.Parent != null)
                 excelWriter.WriteCell(worksheet, row, 1, element.Parent.Designation);
             excelWriter.WriteCell(worksheet, row, 2, "Элемент");
@@ -246,38 +249,81 @@ namespace ExportTC.ViewModel
             }
             excelWriter.WriteCell(worksheet, row, 10, element.Revision);
             excelWriter.WriteCell(worksheet, row, 14, element.Designation);
-            excelWriter.WriteCell(worksheet, row, 15, element.Designation + "-" + element.Revision);
-            if (element.Parent != null)
-                excelWriter.WriteCell(worksheet, row, 16, string.Format("{0}-{1}.{2}-{3}", element.Parent.Designation, element.Parent.Revision, element.Designation, element.Revision));
-            if (!string.IsNullOrEmpty(element.DocFile))
-                excelWriter.WriteCell(worksheet, row, 19, element.DocFile);
-            if (!string.IsNullOrEmpty(element.DocxFile))
-                excelWriter.WriteCell(worksheet, row, 20, element.DocxFile);
-            excelWriter.WriteCell(worksheet, row, 21, element.ExcelFile);
-            excelWriter.WriteCell(worksheet, row, 24, element.PDFFile);
-            excelWriter.WriteCell(worksheet, row, 26, element.PartFile);
-            excelWriter.WriteCell(worksheet, row, 27, element.AssemblyFile);
 
-            excelWriter.WriteCell(worksheet, row, 28, element.DrawingFile);
-            excelWriter.WriteCell(worksheet, row, 29, element.EMDrawingFile);
-            excelWriter.WriteCell(worksheet, row, 30, element.EADrawingFile);
-            excelWriter.WriteCell(worksheet, row, 31, element.REDrawingFile);
-            excelWriter.WriteCell(worksheet, row, 32, element.JpegFile);
-            excelWriter.WriteCell(worksheet, row, 33, element.ZipFile);
             excelWriter.WriteCell(worksheet, row, 34, element.Costtype);
             excelWriter.WriteCell(worksheet, row, 35, element.MakeOrBuy);
             excelWriter.WriteCell(worksheet, row, 36, element.Spare);
             excelWriter.WriteCell(worksheet, row, 37, element.ItemCodeSupplier);
             excelWriter.WriteCell(worksheet, row, 38, element.TreeType);
 
-            excelWriter.WriteCell(worksheet, row, 40, Path.GetFileNameWithoutExtension(element.PDFFile));
-            excelWriter.WriteCell(worksheet, row, 41, Path.GetFileNameWithoutExtension(element.JpegFile));
-            excelWriter.WriteCell(worksheet, row, 42, Path.GetFileNameWithoutExtension(element.ZipFile));
-            if (!string.IsNullOrWhiteSpace(element.DocFile))
-                excelWriter.WriteCell(worksheet, row, 43, Path.GetFileNameWithoutExtension(element.DocFile));
-            if (!string.IsNullOrWhiteSpace(element.DocxFile))
-                excelWriter.WriteCell(worksheet, row, 43, Path.GetFileNameWithoutExtension(element.DocxFile));
-            excelWriter.WriteCell(worksheet, row, 44, Path.GetFileNameWithoutExtension(element.ExcelFile));
+            excelWriter.WriteCell(worksheet, row, 15, element.Designation + "-" + element.Revision);
+            if (element.Parent != null)
+                excelWriter.WriteCell(worksheet, row, 16, string.Format("{0}-{1}.{2}-{3}", element.Parent.Designation, element.Parent.Revision, element.Designation, element.Revision));
+
+            if (!_recodManager.IsRecordExists(RootElements.FirstOrDefault().Designation, element.Designation, element.Revision))
+            {
+                if (!string.IsNullOrEmpty(element.DocFile))
+                    excelWriter.WriteCell(worksheet, row, 19, element.DocFile);
+                if (!string.IsNullOrEmpty(element.DocxFile))
+                    excelWriter.WriteCell(worksheet, row, 20, element.DocxFile);
+                excelWriter.WriteCell(worksheet, row, 21, element.ExcelFile);
+                excelWriter.WriteCell(worksheet, row, 24, element.PDFFile);
+                excelWriter.WriteCell(worksheet, row, 26, element.PartFile);
+                excelWriter.WriteCell(worksheet, row, 27, element.AssemblyFile);
+
+                excelWriter.WriteCell(worksheet, row, 28, element.DrawingFile);
+                excelWriter.WriteCell(worksheet, row, 29, element.EMDrawingFile);
+                excelWriter.WriteCell(worksheet, row, 30, element.EADrawingFile);
+                excelWriter.WriteCell(worksheet, row, 31, element.REDrawingFile);
+                excelWriter.WriteCell(worksheet, row, 32, element.JpegFile);
+                excelWriter.WriteCell(worksheet, row, 33, element.ZipFile);
+
+                excelWriter.WriteCell(worksheet, row, 40, Path.GetFileNameWithoutExtension(element.PDFFile));
+                excelWriter.WriteCell(worksheet, row, 41, Path.GetFileNameWithoutExtension(element.JpegFile));
+                excelWriter.WriteCell(worksheet, row, 42, Path.GetFileNameWithoutExtension(element.ZipFile));
+
+                if (!string.IsNullOrWhiteSpace(element.DocFile))
+                    excelWriter.WriteCell(worksheet, row, 43, Path.GetFileNameWithoutExtension(element.DocFile));
+                if (!string.IsNullOrWhiteSpace(element.DocxFile))
+                    excelWriter.WriteCell(worksheet, row, 43, Path.GetFileNameWithoutExtension(element.DocxFile));
+                excelWriter.WriteCell(worksheet, row, 44, Path.GetFileNameWithoutExtension(element.ExcelFile));
+
+                excelWriter.WriteCell(worksheet, row, 46, element.Html);
+                excelWriter.WriteCell(worksheet, row, 47, element.STEP);
+                excelWriter.WriteCell(worksheet, row, 48, element.PPT);
+                excelWriter.WriteCell(worksheet, row, 49, element.PPTX);
+                excelWriter.WriteCell(worksheet, row, 50, element.TXT);
+                excelWriter.WriteCell(worksheet, row, 51, element.Multy);
+                excelWriter.WriteCell(worksheet, row, 52, element.GIF);
+                excelWriter.WriteCell(worksheet, row, 53, element.PNG);
+                excelWriter.WriteCell(worksheet, row, 54, element.TIF);
+                excelWriter.WriteCell(worksheet, row, 55, element.BMP);
+                excelWriter.WriteCell(worksheet, row, 56, element.DFX);
+                excelWriter.WriteCell(worksheet, row, 57, element.DWG);
+                excelWriter.WriteCell(worksheet, row, 58, element.MSG);
+                excelWriter.WriteCell(worksheet, row, 59, Path.GetFileNameWithoutExtension(element.Html));
+                excelWriter.WriteCell(worksheet, row, 60, Path.GetFileNameWithoutExtension(element.STEP));
+                excelWriter.WriteCell(worksheet, row, 61, Path.GetFileNameWithoutExtension(element.PPT));
+                excelWriter.WriteCell(worksheet, row, 62, Path.GetFileNameWithoutExtension(element.PPTX));
+                excelWriter.WriteCell(worksheet, row, 63, Path.GetFileNameWithoutExtension(element.TXT));
+                excelWriter.WriteCell(worksheet, row, 64, Path.GetFileNameWithoutExtension(element.Multy));
+                excelWriter.WriteCell(worksheet, row, 65, Path.GetFileNameWithoutExtension(element.GIF));
+                excelWriter.WriteCell(worksheet, row, 66, Path.GetFileNameWithoutExtension(element.PNG));
+                excelWriter.WriteCell(worksheet, row, 67, Path.GetFileNameWithoutExtension(element.TIF));
+                excelWriter.WriteCell(worksheet, row, 68, Path.GetFileNameWithoutExtension(element.BMP));
+                excelWriter.WriteCell(worksheet, row, 69, Path.GetFileNameWithoutExtension(element.DFX));
+                excelWriter.WriteCell(worksheet, row, 70, Path.GetFileNameWithoutExtension(element.DWG));
+                excelWriter.WriteCell(worksheet, row, 71, Path.GetFileNameWithoutExtension(element.MSG));
+
+
+
+
+                _recodManager.AddRecord(RootElements.FirstOrDefault().Designation, element.Designation, element.Revision);
+            }
+            else
+            {
+
+            }
             excelWriter.WriteCell(worksheet, row, 45, element.AddInfo);
         }
 

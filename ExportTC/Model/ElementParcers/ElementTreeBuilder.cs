@@ -41,7 +41,34 @@ namespace ExportTC.Model.ElementParcers
                 stack.Push(newElement);
             }
 
+            // Ищем ветку, содержащую "General"
+            var generalBranch = FindGeneralElement(elements);
+            return new List<Element> { generalBranch};
+
             return elements;
+        }
+
+        // Метод для поиска первого элемента, содержащего "General" в Designation
+        private Element FindGeneralElement(List<Element> elements)
+        {
+            foreach (var element in elements)
+            {
+                // Проверяем, содержит ли Designation слово "General"
+                if (element.Designation.Contains("General", StringComparison.OrdinalIgnoreCase))
+                {
+                    return element;
+                }
+
+                // Рекурсивно проверяем дочерние элементы
+                var child = FindGeneralElement(element.Children);
+                if (child != null) // Если поддерево найдено
+                {
+                    return child;
+                }
+            }
+
+            // Если не нашли "General", возвращаем null
+            return null;
         }
 
         private static int GetIndentLevel(string line)
@@ -110,8 +137,6 @@ namespace ExportTC.Model.ElementParcers
                     indentLevel--;
                     continue;
                 }
-
-                // Не пропускаем строки с <DIV> или </DIV>
 
                 if (!string.IsNullOrWhiteSpace(trimmedLine))
                 {

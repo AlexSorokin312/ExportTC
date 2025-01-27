@@ -14,9 +14,7 @@ namespace ExportTC.Model.ElementParcers
         {
             // Создание словаря для быстрого доступа
             var elementsDict = treeElements
-                .Where(e => string.IsNullOrEmpty(e.Name))
-                .GroupBy(e => e.Designation)
-                .ToDictionary(g => g.Key, g => g.ToList());
+                .Where(e => string.IsNullOrEmpty(e.Name)).GroupBy(e => e.Designation).ToDictionary(g => g.Key, g => g.ToList());
 
             // Загрузка HTML-документа
             _htmlDocument = new HtmlAgilityPack.HtmlDocument();
@@ -31,21 +29,6 @@ namespace ExportTC.Model.ElementParcers
             {
                 ProcessRow(row, elementsDict, htmlPath);
             }
-
-            // Параллельная обработка строк
-            /*Parallel.ForEach(rows, row =>
-            {
-                try
-                {
-                    ProcessRow(row, elementsDict, htmlPath);
-
-                }
-                catch (Exception ex)
-                {
-                    // Логирование ошибки
-                    Console.WriteLine($"Ошибка при обработке строки: {ex.Message}");
-                }
-            });*/
         }
 
         private Dictionary<string, int> encounters = new();

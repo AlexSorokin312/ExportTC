@@ -21,6 +21,13 @@ namespace HenconExport.Model.Elemnts
 
         public string? EMDrawingFile;
         public string? ZipFile { get; set; }
+        public string? STEP { get; set; }
+        public string? PPT { get; set; }
+        public string? PPTX { get; set; }
+        public string? TXT { get; set; }
+        public string? BMP { get; set; }
+        public string? MSG { get; set; }
+        public string? Multy { get; set; }
         public string? PartFile { get; set; }
         public string? AssemblyFile { get; set; }
         public string? DocFile { get; set; }
@@ -28,6 +35,11 @@ namespace HenconExport.Model.Elemnts
         public string? JpegFile { get; set; }
         public string? PDFFile { get; set; }
         public string? Html { get; set; }
+        public string? DWG { get; set; }
+        public string? DFX { get; set; }
+        public string? GIF { get; set; }
+        public string? TIF { get; set; }
+        public string? PNG { get; set; }
         public string? FileName { get; set; }
         public string? DrawingIcon { get; set; }
         public Element Parent { get; set; }

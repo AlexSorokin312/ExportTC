@@ -1,56 +1,73 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
 
 public class RecordManager
 {
-    private readonly string _file1To4Path = "Records_1to4.txt";
-    private readonly string _file5To9Path = "Records_5to9.txt";
-
-    // Метод для записи строки в соответствующий файл
-    public void AddRecord(string record)
+    // Метод для записи строки с ревизией в указанный файл (с подчеркиваниями в имени файла)
+    public void AddRecord(string fileName, string record, string revision)
     {
-        if (string.IsNullOrWhiteSpace(record))
-            throw new ArgumentException("Запись не может быть пустой");
+        if (string.IsNullOrWhiteSpace(fileName) || string.IsNullOrWhiteSpace(record) || string.IsNullOrWhiteSpace(revision))
+            throw new ArgumentException("Имя файла, запись и ревизия не могут быть пустыми");
 
-        char firstChar = record[0];
+        // Формируем имя файла с подчеркиваниями, если оно не в нужном формате
+        fileName = "__" + fileName + "__.txt";
 
-        // Проверяем, начинается ли строка с цифры от 1 до 4 или от 5 до 9
-        if (char.IsDigit(firstChar))
+        // Формируем строку для записи с подчеркиваниями
+        string fullRecord = $"_{record}-{revision}_";
+
+        // Проверяем, существует ли запись в этом файле
+        if (!IsRecordExistsInFile(fileName, record, revision))
         {
-            string filePath = (firstChar >= '1' && firstChar <= '4') ? _file1To4Path : _file5To9Path;
-
-            // Записываем в файл
-            File.AppendAllText(filePath, record + Environment.NewLine);
+            // Если записи нет, добавляем её
+            File.AppendAllText(fileName, fullRecord + Environment.NewLine);
+            Console.WriteLine($"Запись '{record}' с ревизией '{revision}' добавлена в файл '{fileName}'.");
         }
         else
         {
-            throw new ArgumentException("Запись должна начинаться с цифры");
+            Console.WriteLine($"Запись '{record}' с ревизией '{revision}' уже существует в файле '{fileName}'.");
         }
     }
 
-    // Метод для проверки, есть ли строка в соответствующем файле
-    public bool IsRecordExists(string record)
+    // Метод для проверки, есть ли строка с ревизией в указанном файле
+    private bool IsRecordExistsInFile(string fileName, string record, string revision)
     {
-        if (string.IsNullOrWhiteSpace(record))
-            throw new ArgumentException("Запись не может быть пустой");
+        if (string.IsNullOrWhiteSpace(fileName) || string.IsNullOrWhiteSpace(record) || string.IsNullOrWhiteSpace(revision))
+            throw new ArgumentException("Имя файла, запись и ревизия не могут быть пустыми");
 
-        char firstChar = record[0];
-
-        if (char.IsDigit(firstChar))
+        if (File.Exists(fileName))
         {
-            string filePath = (firstChar >= '1' && firstChar <= '4') ? _file1To4Path : _file5To9Path;
+            // Формируем строку для проверки
+            string fullRecord = $"_{record}-{revision}_";
 
             // Проверяем наличие записи в файле
-            if (File.Exists(filePath))
-            {
-                string[] lines = File.ReadAllLines(filePath);
-                return lines.Contains(record);
-            }
-        }
-        else
-        {
-            throw new ArgumentException("Запись должна начинаться с цифры");
+            string[] lines = File.ReadAllLines(fileName);
+            return lines.Contains(fullRecord);
         }
 
         return false;
+    }
+
+    // Метод для проверки, существует ли запись с ревизией во всех подходящих файлах
+    public bool IsRecordExists(string fileName, string record, string revision)
+    {
+        if (string.IsNullOrWhiteSpace(record) || string.IsNullOrWhiteSpace(revision))
+            throw new ArgumentException("Запись и ревизия не могут быть пустыми");
+
+        // Получаем список всех файлов в формате __<имя>__.txt
+        string[] allFiles = Directory.GetFiles(Directory.GetCurrentDirectory(), "__*__.txt");
+
+        foreach (var filePath in allFiles)
+        {
+            if (filePath.Contains(fileName))
+                continue;
+            if (IsRecordExistsInFile(filePath, record, revision))
+            {
+                return true; // Если нашли в каком-то файле, возвращаем true
+            }
+        }
+
+        return false; // Если не нашли, возвращаем false
     }
 }
