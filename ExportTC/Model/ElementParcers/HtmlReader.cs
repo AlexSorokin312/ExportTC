@@ -2,7 +2,6 @@
 using ExportTC.Extensions;
 using ExportTC.Interfaces;
 using HenconExport.Model.Elemnts;
-using System.Diagnostics;
 
 namespace ExportTC.Model.ElementParcers
 {
@@ -45,6 +44,17 @@ namespace ExportTC.Model.ElementParcers
             // Проверяем, есть ли данные в словаре
             if (elementsDict.TryGetValue(designation, out var elementsToUpdate) && elementsToUpdate != null)
             {
+                    if (type == "Pdf" || type == "Zip" || type == "Doc" || type == "Gif")
+                {
+                        elementsToUpdate.ForEach(element =>
+                        {
+                            if (element.Children?.Count != 0)
+                            {
+                                element.FileName = FileNameExtactor.ExtractHrefValueFromColumn(cols[0].InnerHtml, htmlPath);
+                            }
+
+                        });
+                }
                 // Копия для работы в потоке
                 var elementsLocalCopy = new List<Element>(elementsToUpdate);
 
@@ -79,6 +89,7 @@ namespace ExportTC.Model.ElementParcers
                                 UpdateElement(elementToUpdate, cols, type, designation, htmlPath);
                             }
                         }
+
                     }
                 }
                 else

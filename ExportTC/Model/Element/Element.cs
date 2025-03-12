@@ -16,7 +16,6 @@ namespace HenconExport.Model.Elemnts
         public string? DrawingFile { get; set; }
 
         public string? EADrawingFile;
-
         public string? REDrawingFile { get; set; }
 
         public string? EMDrawingFile;
@@ -36,7 +35,7 @@ namespace HenconExport.Model.Elemnts
         public string? PDFFile { get; set; }
         public string? Html { get; set; }
         public string? DWG { get; set; }
-        public string? DFX { get; set; }
+        public string? DXF { get; set; }
         public string? GIF { get; set; }
         public string? TIF { get; set; }
         public string? PNG { get; set; }
@@ -51,6 +50,7 @@ namespace HenconExport.Model.Elemnts
         public string? Spare { get; set; }
         public string? AddInfo { get; set; }
         public string? ExcelFile { get; set; }
+        public List<Element> Parents { get; set; } = new(); //специально введено для создания generic-файлов
 
         public Element(string designation, string assembly)
         {
@@ -71,6 +71,23 @@ namespace HenconExport.Model.Elemnts
             Quantity = quantity;
             MakeOrBuy = makeOrBuy;
             Revision = revision ?? "00";
+        }
+
+        public int GetHierarchyDepth()
+        {
+            int depth = 0;
+            Element current = this;
+
+            while (current.Parent != null)
+            {
+                depth++;
+                current = current.Parent;
+
+                // Защита от циклических ссылок
+                if (depth > 1000) throw new InvalidOperationException("Обнаружена циклическая ссылка в родительской иерархии");
+            }
+
+            return depth;
         }
     }
 }

@@ -18,11 +18,11 @@ namespace ExportTC.ViewModel
     internal class GenerateViewModel : ObservableObject
     {
         private InitialData _initialData;
-        private RecordManager _recodManager;
+        private RecordManager _recordManager;
         private IFileSearchService _fileSearchService;
         private Assembly _assembly;
         public ObservableCollection<Element> RootElements { get; private set; } = new ObservableCollection<Element>();
-
+        private readonly RecordManager _recodeManager;
         private ObservableCollection<string> _comboBoxItems;
         public ObservableCollection<string> ComboBoxItems
         {
@@ -68,7 +68,7 @@ namespace ExportTC.ViewModel
                     return;
                 StartProcessCommand = new AsyncRelayCommand(SaveToExcelFileAsync);
                 GenerateCommand = new AsyncRelayCommand(DisplayTree);
-                _recodManager = App.ServiceProvider.GetService<RecordManager>()
+                _recordManager = App.ServiceProvider.GetService<RecordManager>()
                     ?? throw new InvalidOperationException(ErrorMessages.InitialDataServiceError);
                 AppLogger.LogInformation("GenerateViewModel initialized successfully.");
             }
@@ -193,13 +193,21 @@ namespace ExportTC.ViewModel
 
                     //var flattenElements = FlattenElements(_assembly.GetRootElement());
                     //var c = flattenElements.FirstOrDefault(x => x.Designation == "448500091");
-
+                    var el = elements.Where(x => x.Designation == "633854500");
                     //_assembly.Sort(elements);
                     int totalElements = elements.Count;
+                    var sortedElements = elements
+                         .OrderBy(e => e.GetHierarchyDepth())
+                         .ToList();
 
                     for (int i = 0; i < totalElements; i++)
                     {
-                        WriteElementToExcel(excelWriter, worksheet, row, elements[i]);
+                        if (sortedElements[i].Parent != null && sortedElements[i].Parent.Designation.Contains("General"))
+                        {
+                            continue;
+                        }
+                        WriteElementToExcel(excelWriter, worksheet, row, sortedElements[i]);
+
                         row++;
 
                         // Обновляем прогресс
@@ -226,12 +234,31 @@ namespace ExportTC.ViewModel
         }
 
 
+        private List<string> designationsWithFiles = new List<string>();
+
         private void WriteElementToExcel(ExcelWriter excelWriter, ExcelWorksheet worksheet, int row, Element element)
         {
-            if (element.Designation == "448500091")
-            {
 
+            if (element.Parent == null)
+                element.Quantity = "1";
+
+            if (element.Parent != null)
+            {
+                if (!string.IsNullOrEmpty(element.Multy))
+                {
+
+                }
+                if (element.Parent.Designation.Contains("General"))
+                {
+                    return;
+                }
             }
+
+            var existsFile = _recordManager.IsRecordExists(RootAssembly.value, element.Parent?.Designation, element.Parent?.Revision);
+            if (existsFile)
+            {
+            }
+
             if (element.Parent != null)
                 excelWriter.WriteCell(worksheet, row, 1, element.Parent.Designation);
             excelWriter.WriteCell(worksheet, row, 2, "Элемент");
@@ -260,65 +287,263 @@ namespace ExportTC.ViewModel
             if (element.Parent != null)
                 excelWriter.WriteCell(worksheet, row, 16, string.Format("{0}-{1}.{2}-{3}", element.Parent.Designation, element.Parent.Revision, element.Designation, element.Revision));
 
-            if (!_recodManager.IsRecordExists(RootElements.FirstOrDefault().Designation, element.Designation, element.Revision))
+            if (!_recordManager.IsRecordExists(RootElements.FirstOrDefault().Designation, element.Designation, element.Revision))
             {
-                if (!string.IsNullOrEmpty(element.DocFile))
-                    excelWriter.WriteCell(worksheet, row, 19, element.DocFile);
-                if (!string.IsNullOrEmpty(element.DocxFile))
-                    excelWriter.WriteCell(worksheet, row, 20, element.DocxFile);
-                excelWriter.WriteCell(worksheet, row, 21, element.ExcelFile);
-                excelWriter.WriteCell(worksheet, row, 24, element.PDFFile);
+
                 excelWriter.WriteCell(worksheet, row, 26, element.PartFile);
                 excelWriter.WriteCell(worksheet, row, 27, element.AssemblyFile);
 
-                excelWriter.WriteCell(worksheet, row, 28, element.DrawingFile);
+                if (element.DrawingFile != null && !element.DrawingFile.Contains(".dwg"))
+                    excelWriter.WriteCell(worksheet, row, 28, element.DrawingFile);
+
                 excelWriter.WriteCell(worksheet, row, 29, element.EMDrawingFile);
                 excelWriter.WriteCell(worksheet, row, 30, element.EADrawingFile);
                 excelWriter.WriteCell(worksheet, row, 31, element.REDrawingFile);
-                excelWriter.WriteCell(worksheet, row, 32, element.JpegFile);
-                excelWriter.WriteCell(worksheet, row, 33, element.ZipFile);
 
-                excelWriter.WriteCell(worksheet, row, 40, Path.GetFileNameWithoutExtension(element.PDFFile));
-                excelWriter.WriteCell(worksheet, row, 41, Path.GetFileNameWithoutExtension(element.JpegFile));
-                excelWriter.WriteCell(worksheet, row, 42, Path.GetFileNameWithoutExtension(element.ZipFile));
-
-                if (!string.IsNullOrWhiteSpace(element.DocFile))
-                    excelWriter.WriteCell(worksheet, row, 43, Path.GetFileNameWithoutExtension(element.DocFile));
-                if (!string.IsNullOrWhiteSpace(element.DocxFile))
-                    excelWriter.WriteCell(worksheet, row, 43, Path.GetFileNameWithoutExtension(element.DocxFile));
-                excelWriter.WriteCell(worksheet, row, 44, Path.GetFileNameWithoutExtension(element.ExcelFile));
-
-                excelWriter.WriteCell(worksheet, row, 46, element.Html);
-                excelWriter.WriteCell(worksheet, row, 47, element.STEP);
-                excelWriter.WriteCell(worksheet, row, 48, element.PPT);
-                excelWriter.WriteCell(worksheet, row, 49, element.PPTX);
-                excelWriter.WriteCell(worksheet, row, 50, element.TXT);
-                excelWriter.WriteCell(worksheet, row, 51, element.Multy);
-                excelWriter.WriteCell(worksheet, row, 52, element.GIF);
-                excelWriter.WriteCell(worksheet, row, 53, element.PNG);
-                excelWriter.WriteCell(worksheet, row, 54, element.TIF);
-                excelWriter.WriteCell(worksheet, row, 55, element.BMP);
-                excelWriter.WriteCell(worksheet, row, 56, element.DFX);
-                excelWriter.WriteCell(worksheet, row, 57, element.DWG);
-                excelWriter.WriteCell(worksheet, row, 58, element.MSG);
-                excelWriter.WriteCell(worksheet, row, 59, Path.GetFileNameWithoutExtension(element.Html));
-                excelWriter.WriteCell(worksheet, row, 60, Path.GetFileNameWithoutExtension(element.STEP));
-                excelWriter.WriteCell(worksheet, row, 61, Path.GetFileNameWithoutExtension(element.PPT));
-                excelWriter.WriteCell(worksheet, row, 62, Path.GetFileNameWithoutExtension(element.PPTX));
-                excelWriter.WriteCell(worksheet, row, 63, Path.GetFileNameWithoutExtension(element.TXT));
-                excelWriter.WriteCell(worksheet, row, 64, Path.GetFileNameWithoutExtension(element.Multy));
-                excelWriter.WriteCell(worksheet, row, 65, Path.GetFileNameWithoutExtension(element.GIF));
-                excelWriter.WriteCell(worksheet, row, 66, Path.GetFileNameWithoutExtension(element.PNG));
-                excelWriter.WriteCell(worksheet, row, 67, Path.GetFileNameWithoutExtension(element.TIF));
-                excelWriter.WriteCell(worksheet, row, 68, Path.GetFileNameWithoutExtension(element.BMP));
-                excelWriter.WriteCell(worksheet, row, 69, Path.GetFileNameWithoutExtension(element.DFX));
-                excelWriter.WriteCell(worksheet, row, 70, Path.GetFileNameWithoutExtension(element.DWG));
-                excelWriter.WriteCell(worksheet, row, 71, Path.GetFileNameWithoutExtension(element.MSG));
+                if (element.DocFile != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.DocFile, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+                        excelWriter.WriteCell(worksheet, row, 19, element.DocFile);
+                        excelWriter.WriteCell(worksheet, row, 43, Path.GetFileNameWithoutExtension(element.DocFile));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
 
 
+                if (element.DocxFile != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.DocxFile, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+                        excelWriter.WriteCell(worksheet, row, 20, element.DocxFile);
+                        excelWriter.WriteCell(worksheet, row, 43, Path.GetFileNameWithoutExtension(element.DocxFile));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.PDFFile != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.PDFFile, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+                        excelWriter.WriteCell(worksheet, row, 24, element.PDFFile);
+                        excelWriter.WriteCell(worksheet, row, 40, Path.GetFileNameWithoutExtension(element.PDFFile));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.ExcelFile != null)
+                {
+
+                    var cachedRow = string.Format("{0}-{1}", element.ExcelFile, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        if (element.ExcelFile.Contains(".xlsm"))
+                        {
+                            excelWriter.WriteCell(worksheet, row, 72, element.ExcelFile);
+                            excelWriter.WriteCell(worksheet, row, 73, Path.GetFileNameWithoutExtension(element.FileName));
+                            designationsWithFiles.Add(cachedRow);
+                        }
+                        else if (element.ExcelFile.Contains(".xlsx"))
+                        {
+                            excelWriter.WriteCell(worksheet, row, 21, element.ExcelFile);
+                            excelWriter.WriteCell(worksheet, row, 44, Path.GetFileNameWithoutExtension(element.ExcelFile));
+                            designationsWithFiles.Add(cachedRow);
+
+                        }
+                        else
+                        {
+                            excelWriter.WriteCell(worksheet, row, 72, element.ExcelFile);
+                            excelWriter.WriteCell(worksheet, row, 73, Path.GetFileNameWithoutExtension(element.FileName));
+                            designationsWithFiles.Add(cachedRow);
+                        }
+                    }
+                }
+
+                if (element.ZipFile != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.ZipFile, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+                        excelWriter.WriteCell(worksheet, row, 33, element.ZipFile);
+                        excelWriter.WriteCell(worksheet, row, 42, Path.GetFileNameWithoutExtension(element.ZipFile));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.JpegFile != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.JpegFile, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+                        excelWriter.WriteCell(worksheet, row, 32, element.JpegFile);
+                        excelWriter.WriteCell(worksheet, row, 41, Path.GetFileNameWithoutExtension(element.JpegFile));
+
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
 
 
-                _recodManager.AddRecord(RootElements.FirstOrDefault().Designation, element.Designation, element.Revision);
+                if (element.PNG != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.PNG, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+                        excelWriter.WriteCell(worksheet, row, 53, element.PNG);
+                        excelWriter.WriteCell(worksheet, row, 66, Path.GetFileNameWithoutExtension(element.PNG));
+
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.Html != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.Html, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        excelWriter.WriteCell(worksheet, row, 46, element.Html);
+                        excelWriter.WriteCell(worksheet, row, 59, Path.GetFileNameWithoutExtension(element.Html));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+
+                if (element.STEP != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.STEP, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        excelWriter.WriteCell(worksheet, row, 47, element.STEP);
+                        excelWriter.WriteCell(worksheet, row, 60, Path.GetFileNameWithoutExtension(element.STEP));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.PPT != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.PPT, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        excelWriter.WriteCell(worksheet, row, 48, element.PPT);
+                        excelWriter.WriteCell(worksheet, row, 61, Path.GetFileNameWithoutExtension(element.PPT));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.PPTX != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.PPTX, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        excelWriter.WriteCell(worksheet, row, 49, element.PPTX);
+                        excelWriter.WriteCell(worksheet, row, 62, Path.GetFileNameWithoutExtension(element.PPTX));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.TXT != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.TXT, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        excelWriter.WriteCell(worksheet, row, 50, element.TXT);
+                        excelWriter.WriteCell(worksheet, row, 63, Path.GetFileNameWithoutExtension(element.TXT));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.GIF != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.GIF, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        excelWriter.WriteCell(worksheet, row, 52, element.GIF);
+                        excelWriter.WriteCell(worksheet, row, 65, Path.GetFileNameWithoutExtension(element.GIF));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.TIF != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.TIF, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        excelWriter.WriteCell(worksheet, row, 54, element.TIF);
+                        excelWriter.WriteCell(worksheet, row, 67, Path.GetFileNameWithoutExtension(element.TIF));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.DXF != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.DXF, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        excelWriter.WriteCell(worksheet, row, 56, element.DXF);
+                        excelWriter.WriteCell(worksheet, row, 69, Path.GetFileNameWithoutExtension(element.DXF));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.BMP != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.BMP, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        excelWriter.WriteCell(worksheet, row, 55, element.BMP);
+                        excelWriter.WriteCell(worksheet, row, 68, Path.GetFileNameWithoutExtension(element.BMP));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.MSG != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.MSG, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        excelWriter.WriteCell(worksheet, row, 58, element.MSG);
+                        excelWriter.WriteCell(worksheet, row, 71, Path.GetFileNameWithoutExtension(element.MSG));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                if (element.DWG != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.DWG, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        excelWriter.WriteCell(worksheet, row, 57, element.DWG);
+                        excelWriter.WriteCell(worksheet, row, 70, Path.GetFileNameWithoutExtension(element.DWG));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+                if (element.Multy != null)
+                {
+                    var cachedRow = string.Format("{0}-{1}", element.Multy, element.Designation);
+                    if (!designationsWithFiles.Contains(cachedRow))
+                    {
+
+                        excelWriter.WriteCell(worksheet, row, 51, element.Multy);
+                        excelWriter.WriteCell(worksheet, row, 64, Path.GetFileNameWithoutExtension(element.Multy));
+                        designationsWithFiles.Add(cachedRow);
+                    }
+                }
+
+                _recordManager.AddRecord(RootElements.FirstOrDefault().Designation, element.Designation, element.Revision);
             }
             else
             {

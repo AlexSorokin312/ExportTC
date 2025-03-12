@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
+﻿using System.IO;
 
 public class RecordManager
 {
@@ -53,7 +50,7 @@ public class RecordManager
     public bool IsRecordExists(string fileName, string record, string revision)
     {
         if (string.IsNullOrWhiteSpace(record) || string.IsNullOrWhiteSpace(revision))
-            throw new ArgumentException("Запись и ревизия не могут быть пустыми");
+            return false;
 
         // Получаем список всех файлов в формате __<имя>__.txt
         string[] allFiles = Directory.GetFiles(Directory.GetCurrentDirectory(), "__*__.txt");
