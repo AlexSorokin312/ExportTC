@@ -89,7 +89,6 @@ namespace ExportTC.Model.ElementParcers
                                 UpdateElement(elementToUpdate, cols, type, designation, htmlPath);
                             }
                         }
-
                     }
                 }
                 else

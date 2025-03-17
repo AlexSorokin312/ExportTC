@@ -511,7 +511,6 @@ namespace ExportTC.Model
                 File.AppendAllText(fileNameSave, lineToAdd + Environment.NewLine);
             }
         }
-
         private void FindFiles(List<Element> elements, InitialData initialData)
         {
             var baseDirectory = initialData.BaseDirectory;

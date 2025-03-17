@@ -9,6 +9,7 @@ using OfficeOpenXml;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Xml.Linq;
@@ -152,12 +153,12 @@ namespace ExportTC.ViewModel
         {
             if (_assembly == null)
                 return;
+
             IsProgressVisible = true;
             ProgressValue = 0;
 
-
             string savePath = _initialData.SavePath;
-            if (File.Exists(Path.Combine(savePath, "Hencon_Impl.xlsm"))) ;
+            if (File.Exists(Path.Combine(savePath, "Hencon_Impl.xlsm")))
             try
             {
                 File.Delete(savePath);
@@ -190,7 +191,9 @@ namespace ExportTC.ViewModel
                     var worksheet = excelWriter.GetWorksheet(2);
                     int row = 3;
                     var elements = _assembly.Elements;
-
+                    var result = CheckIncorrectFiles(elements.ToList());
+                    if (!result)
+                        return;
                     //var flattenElements = FlattenElements(_assembly.GetRootElement());
                     //var c = flattenElements.FirstOrDefault(x => x.Designation == "448500091");
                     var el = elements.Where(x => x.Designation == "633854500");
@@ -564,6 +567,48 @@ namespace ExportTC.ViewModel
             }
 
             return flatList;
+        }
+
+        public bool CheckIncorrectFiles(List<Element> elements)
+        {
+            if (Warnings.warnings.Count == 0)
+                return true;
+
+            StringBuilder messageBuilder = new StringBuilder();
+
+            // Формируем текст сообщения
+            foreach (var element in Warnings.warnings)
+            {
+                messageBuilder.AppendLine(element);
+            }
+
+            string message = messageBuilder.ToString();
+            
+            // Запись в файл, если есть предупреждения
+            string filePath = "warnings_log.txt"; // Имя файла (можно указать путь)
+            string timestamp = $"Выгрузка сборки {elements.FirstOrDefault().Designation} от {DateTime.Now:dd.MM.yyyy HH:mm:ss}";
+            
+            StringBuilder logBuilder = new StringBuilder();
+            logBuilder.AppendLine(); // Добавляем пустую строку сверху
+            logBuilder.AppendLine(timestamp);
+            logBuilder.AppendLine(message); // Добавляем сами сообщения
+
+            // Записываем в файл без перезаписи предыдущих данных
+            File.AppendAllText(filePath, logBuilder.ToString(), Encoding.UTF8);
+
+            // Вызов диалогового окна с кнопками "Продолжить" (OK) и "Отмена" (Cancel)
+            MessageBoxResult result = MessageBox.Show(
+                message,
+                "Предупреждение",
+                MessageBoxButton.OKCancel,
+                MessageBoxImage.Question
+            );
+
+            // Если пользователь нажал "Отмена", просто выходим
+            if (result == MessageBoxResult.Cancel)
+                return false;
+
+            return true;
         }
     }
 }

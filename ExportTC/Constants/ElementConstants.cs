@@ -13,6 +13,7 @@
         public const string ZIP = "Zip";
         public const string DOC = "Doc";
         public const string GIF = "Gif";
+
         public const string GENERIC = "GENERIC";
 
         public const string CHECKEDIN = "checkedin";
