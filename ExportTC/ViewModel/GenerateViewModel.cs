@@ -12,7 +12,6 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
-using System.Xml.Linq;
 
 namespace ExportTC.ViewModel
 {
@@ -99,21 +98,30 @@ namespace ExportTC.ViewModel
 
             Parallel.ForEach(cacheFileNames, fileName =>
             {
-                var matchingFiles = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
-                                             .Where(f => string.Equals(Path.GetFileName(f), fileName, StringComparison.OrdinalIgnoreCase));
-
-                foreach (var file in matchingFiles)
+                var alreadyExists = Directory.EnumerateFiles(directoryToSave, "*", SearchOption.AllDirectories)
+                             .Where(f => string.Equals(Path.GetFileName(f), fileName, StringComparison.OrdinalIgnoreCase));
+                if (alreadyExists.Any())
                 {
-                    string destinationPath = Path.Combine(directoryToSave, Path.GetFileName(file));
 
-                    try
+                }
+                else
+                {
+                    var matchingFiles = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
+                                                 .Where(f => string.Equals(Path.GetFileName(f), fileName, StringComparison.OrdinalIgnoreCase));
+
+                    foreach (var file in matchingFiles)
                     {
-                        File.Copy(file, destinationPath, overwrite: true);
-                        Console.WriteLine($"Файл {file} успешно скопирован в {destinationPath}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Ошибка при копировании файла {file}: {ex.Message}");
+                        string destinationPath = Path.Combine(directoryToSave, Path.GetFileName(file));
+
+                        try
+                        {
+                            File.Copy(file, destinationPath, overwrite: true);
+                            Console.WriteLine($"Файл {file} успешно скопирован в {destinationPath}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Ошибка при копировании файла {file}: {ex.Message}");
+                        }
                     }
                 }
             });
@@ -152,7 +160,10 @@ namespace ExportTC.ViewModel
         public async Task SaveToExcelFileAsync()
         {
             if (_assembly == null)
+            {
+                MessageBox.Show("Сначала нажмите кнопку \"Сформировать структуру\" для получения данных", "Предупреждение", MessageBoxButton.OK);
                 return;
+            }
 
             IsProgressVisible = true;
             ProgressValue = 0;
@@ -194,14 +205,16 @@ namespace ExportTC.ViewModel
                     var result = CheckIncorrectFiles(elements.ToList());
                     if (!result)
                         return;
-                    //var flattenElements = FlattenElements(_assembly.GetRootElement());
-                    //var c = flattenElements.FirstOrDefault(x => x.Designation == "448500091");
-                    var el = elements.Where(x => x.Designation == "633854500");
+
                     //_assembly.Sort(elements);
                     int totalElements = elements.Count;
+
                     var sortedElements = elements
                          .OrderBy(e => e.GetHierarchyDepth())
                          .ToList();
+
+                    sortedElements = Sort(sortedElements.ToList());
+
 
                     for (int i = 0; i < totalElements; i++)
                     {
@@ -216,7 +229,6 @@ namespace ExportTC.ViewModel
                         // Обновляем прогресс
                         ProgressValue = (i + 1) * 100.0 / totalElements;
                     }
-
                     excelWriter.Save();
                 }
             }
@@ -231,11 +243,34 @@ namespace ExportTC.ViewModel
             Process.Start(new ProcessStartInfo(outputPath) { UseShellExecute = true });
         }
 
+
+        private List<Element> Sort(List<Element> elements)
+        {
+            var seen = new HashSet<string>();
+            var swappedChildren = new List<Element>();
+
+            for (int i = 0; i < elements.Count; i++)
+            {
+                var child = elements[i];
+                var parentDesignation = child.Parent?.Designation;
+                if (!string.IsNullOrWhiteSpace(parentDesignation))
+                {
+                    int parentIndex = elements.FindIndex(e => e.Designation == parentDesignation);
+                    if (parentIndex > i)
+                    {
+                        swappedChildren.Add(child);
+                        (elements[i], elements[parentIndex]) = (elements[parentIndex], elements[i]);
+                        i--; // re‑check current position, т.к. теперь тут родитель
+                    }
+                }
+            }
+            return elements;
+        }
+
         private void ShowErrorMessage(string message)
         {
             MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         }
-
 
         private List<string> designationsWithFiles = new List<string>();
 
@@ -247,23 +282,16 @@ namespace ExportTC.ViewModel
 
             if (element.Parent != null)
             {
-                if (!string.IsNullOrEmpty(element.Multy))
-                {
-
-                }
                 if (element.Parent.Designation.Contains("General"))
-                {
                     return;
-                }
             }
 
             var existsFile = _recordManager.IsRecordExists(RootAssembly.value, element.Parent?.Designation, element.Parent?.Revision);
-            if (existsFile)
-            {
-            }
+
 
             if (element.Parent != null)
                 excelWriter.WriteCell(worksheet, row, 1, element.Parent.Designation);
+
             excelWriter.WriteCell(worksheet, row, 2, "Элемент");
 
             excelWriter.WriteCell(worksheet, row, 3, element.Designation);
@@ -280,11 +308,32 @@ namespace ExportTC.ViewModel
             excelWriter.WriteCell(worksheet, row, 10, element.Revision);
             excelWriter.WriteCell(worksheet, row, 14, element.Designation);
 
-            excelWriter.WriteCell(worksheet, row, 34, element.Costtype);
-            excelWriter.WriteCell(worksheet, row, 35, element.MakeOrBuy);
-            excelWriter.WriteCell(worksheet, row, 36, element.Spare);
+            if (!string.IsNullOrEmpty(element.Costtype))
+            {
+                // Приводим строку так, чтобы первая буква была заглавной, а остальные — маленькими.
+                string formattedCosttype = char.ToUpper(element.Costtype[0]) + element.Costtype.Substring(1).ToLower();
+                excelWriter.WriteCell(worksheet, row, 34, formattedCosttype);
+            }
+
+            excelWriter.WriteCell(worksheet, row, 35, element.MakeOrBuy?.ToUpper());
+
+            if (!string.IsNullOrEmpty(element.HenconStatus))
+            {
+                string output = char.ToUpper(element.HenconStatus[0]) + element.HenconStatus.Substring(1).ToLower();
+                if (output.Contains("hencon", StringComparison.OrdinalIgnoreCase))
+                {
+                    output = output.Replace("hencon", "Hencon");
+                }
+                excelWriter.WriteCell(worksheet, row, 74, output);
+            }
+
+            excelWriter.WriteCell(worksheet, row, 36, element.Spare?.ToUpper());
             excelWriter.WriteCell(worksheet, row, 37, element.ItemCodeSupplier);
             excelWriter.WriteCell(worksheet, row, 38, element.TreeType);
+            if (element.TreeType == "Detail")
+            {
+                excelWriter.WriteCell(worksheet, row, 38, "Part");
+            }
 
             excelWriter.WriteCell(worksheet, row, 15, element.Designation + "-" + element.Revision);
             if (element.Parent != null)
@@ -347,7 +396,7 @@ namespace ExportTC.ViewModel
                         if (element.ExcelFile.Contains(".xlsm"))
                         {
                             excelWriter.WriteCell(worksheet, row, 72, element.ExcelFile);
-                            excelWriter.WriteCell(worksheet, row, 73, Path.GetFileNameWithoutExtension(element.FileName));
+                            excelWriter.WriteCell(worksheet, row, 73, Path.GetFileNameWithoutExtension(element.ExcelFile));
                             designationsWithFiles.Add(cachedRow);
                         }
                         else if (element.ExcelFile.Contains(".xlsx"))
@@ -360,7 +409,7 @@ namespace ExportTC.ViewModel
                         else
                         {
                             excelWriter.WriteCell(worksheet, row, 72, element.ExcelFile);
-                            excelWriter.WriteCell(worksheet, row, 73, Path.GetFileNameWithoutExtension(element.FileName));
+                            excelWriter.WriteCell(worksheet, row, 73, Path.GetFileNameWithoutExtension(element.ExcelFile));
                             designationsWithFiles.Add(cachedRow);
                         }
                     }
@@ -516,7 +565,6 @@ namespace ExportTC.ViewModel
                     var cachedRow = string.Format("{0}-{1}", element.MSG, element.Designation);
                     if (!designationsWithFiles.Contains(cachedRow))
                     {
-
                         excelWriter.WriteCell(worksheet, row, 58, element.MSG);
                         excelWriter.WriteCell(worksheet, row, 71, Path.GetFileNameWithoutExtension(element.MSG));
                         designationsWithFiles.Add(cachedRow);

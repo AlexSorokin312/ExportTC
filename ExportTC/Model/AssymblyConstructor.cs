@@ -3,9 +3,7 @@ using ExportTC.Model.ElementParcers;
 using ExportTC.Model.Factories;
 using HenconExport.Model.Elemnts;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 public static class RootAssembly
 {
@@ -72,7 +70,11 @@ namespace ExportTC.Model
             htmlElements = RemoveDuplicatesByDesignationAndParentDesignation(htmlElements);
             RootString = htmlElements.FirstOrDefault().Designation;
 
+            var cvv = htmlElements.Where(x => x.Parent.Designation == x.Designation);
+            if (cvv.Any())
+            {
 
+            }
             LoggerDebug.LogInfo("Слияние данных из Excel и HTML.");
 
             LoggerDebug.LogInfo("Добавление дополнительных параметров.");
@@ -88,10 +90,10 @@ namespace ExportTC.Model
             LinkDocumentsToDetails(htmlElements);
 
 
+
             LoggerDebug.LogInfo("Поиск файлов для элементов.");
             FindFiles(htmlElements, initialData);
             MatchQuantity1(htmlElements);
-            var m1 = htmlElements.Where(x => x.Designation == "440024189");
 
             SingleGenerics(htmlElements);
 
@@ -146,6 +148,13 @@ namespace ExportTC.Model
                 {
                     htmlElement.Pos = element.Pos;
                     htmlElement.Name = element.Name;
+
+                    htmlElement.Costtype = element.Costtype;
+                    htmlElement.MakeOrBuy = element.MakeOrBuy?.ToUpper();
+                    htmlElement.Spare = element.Spare;
+                    htmlElement.ItemCodeSupplier = element.ItemCodeSupplier;
+                    htmlElement.AddInfo = element.AddInfo;
+                    htmlElement.HenconStatus = element.HenconStatus;
                 }
             }
         }
@@ -188,7 +197,8 @@ namespace ExportTC.Model
                 ItemCodeSupplier = initialData.ItemCodeSupplierColumn,
                 Costtype = initialData.CosttypeColumn,
                 Spare = initialData.SpareColumn,
-                AddInfo = initialData.AddInfoColumn
+                AddInfo = initialData.AddInfoColumn,
+                HenconStd = initialData.HenconStdColumn
             };
         }
 
@@ -206,10 +216,12 @@ namespace ExportTC.Model
                 {
 
                     element.Costtype = excelElement.Costtype;
-                    element.MakeOrBuy = _parametersDefinder.DefineMakeBuy(excelElement.MakeOrBuy);
-                    element.Spare = _parametersDefinder.DefineSpare(excelElement.Spare);
+                    element.MakeOrBuy = excelElement.MakeOrBuy?.ToUpper();
+                    element.Spare = excelElement.Spare;
                     element.ItemCodeSupplier = excelElement.ItemCodeSupplier;
                     element.AddInfo = excelElement.AddInfo;
+                    element.HenconStatus = excelElement.HenconStatus;
+
                 }
 
                 element.TreeType = _parametersDefinder.DefineElementType(element);
@@ -249,7 +261,21 @@ namespace ExportTC.Model
                     var exists = _recodeManager.IsRecordExists(RootString, element.Parent.Designation, element.Parent.Revision);
                     if (exists)
                     {
-                        element.Quantity = "0";
+                        if (_recodeManager.IsRecordExists(RootString, element.Designation, element.Revision))
+                        {
+                            element.Quantity = "0";
+
+                        }
+                        else
+                        {
+                            element.Quantity = "1";
+                            if (element.DrawingIcon == ElementConstants.GENERIC)
+                            {
+                                row = String.Format("{0}-{1}", element.Parent.Designation, element.Designation);
+                                var first = _numberes.FirstOrDefault(x => x.Key == row);
+                                element.Quantity = first.Value;
+                            }
+                        }
                     }
                     else
                     {
@@ -325,8 +351,6 @@ namespace ExportTC.Model
 
         private void LinkDocumentsToDetails(List<Element> elements)
         {
-
-
             // Отфильтруем элементы, которые не являются файлами или сборками
             var noFilesAndAssemblies = elements
                 .Where(x => x.DrawingIcon != ElementConstants.ASSEMBLY && x.DrawingIcon != ElementConstants.DETAIL)
@@ -447,8 +471,18 @@ namespace ExportTC.Model
                 else if (fileName.Contains("ppt", comparisonType: StringComparison.OrdinalIgnoreCase))
                     newChild.PPT = fileName;
 
-                else if (fileName.Contains("pptx", comparisonType: StringComparison.OrdinalIgnoreCase))
-                    newChild.PPTX = fileName;
+                else if (fileName.Contains("ppt", comparisonType: StringComparison.OrdinalIgnoreCase))
+                {
+                    if (fileName.Contains("pptx", comparisonType: StringComparison.OrdinalIgnoreCase))
+                    {
+                        newChild.PPTX = fileName;
+                    }
+                    else
+                    {
+                        newChild.PPT = fileName;
+
+                    }
+                }
 
                 else if (fileName.Contains("tif", comparisonType: StringComparison.OrdinalIgnoreCase))
                     newChild.TIF = fileName;
@@ -744,10 +778,17 @@ namespace ExportTC.Model
                 child.STEP = fileName;
 
             else if (fileName.Contains("ppt", comparisonType: StringComparison.OrdinalIgnoreCase))
-                child.PPT = fileName;
+            {
+                if (fileName.Contains("pptx", comparisonType: StringComparison.OrdinalIgnoreCase))
+                {
+                    child.PPTX = fileName;
+                }
+                else
+                {
+                    child.PPT = fileName;
 
-            else if (fileName.Contains("pptx", comparisonType: StringComparison.OrdinalIgnoreCase))
-                child.PPTX = fileName;
+                }
+            }
 
             else if (fileName.Contains("tif", comparisonType: StringComparison.OrdinalIgnoreCase))
                 child.TIF = fileName;

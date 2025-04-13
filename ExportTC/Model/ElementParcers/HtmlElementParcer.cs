@@ -47,7 +47,8 @@ namespace ExportTC.Model.ElementParcers
         }
 
         public List<string> GetSuspiciousMessages(IEnumerable<Element> elements)
-        {
+        { 
+            List<Element> remove = new List<Element>();
             var messages = new List<string>();
 
             var fileFormats = new List<string>
@@ -65,6 +66,10 @@ namespace ExportTC.Model.ElementParcers
             foreach (var assy in assyInDataSet)
             {
                 messages.Add($"Предупреждение: Деталь/Сборка {assy.Designation} входит в набор данных {assy.Parent.Designation}");
+                assy.Parent.Children.Remove(assy);
+                assy.Parent = null;
+                assy.Children.ForEach(x => x.Parent = null);
+                remove.Add(assy);
             }
 
 
@@ -97,6 +102,9 @@ namespace ExportTC.Model.ElementParcers
                     !childFormat.Equals(parentFormat, StringComparison.OrdinalIgnoreCase))
                 {
                     messages.Add($"Предупреждение: элемент '{el.Designation}' имеет формат '{childFormat}', а его родитель '{el.Parent.Designation}' имеет формат '{parentFormat}'.");
+                    el.Parent.Children.Remove(el);
+                    el.Parent = null;
+                    el.Children.ForEach(x => x.Parent = null);
                 }
             }
 
@@ -105,7 +113,7 @@ namespace ExportTC.Model.ElementParcers
             {
                 messages.Add($"Предупреждение: Сборка {assy.Designation} входит в деталь {assy.Parent.Designation}");
             }
-
+            remove.ForEach(x=>elements.ToList().Remove(x));
 
             return messages;
         }

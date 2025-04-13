@@ -14,6 +14,6 @@
         public const string COSTTYPE = "Costtype";
         public const string SPARE = "Spare";
         public const string ADD_INFO = "ADD INFO";
-
+        public const string HenconStd = "Hencon Std";
     }
 }

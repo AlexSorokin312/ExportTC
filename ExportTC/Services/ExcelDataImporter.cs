@@ -44,7 +44,7 @@ public class ExcelDataImporter : IInitialDataSetter
 
     private void ProcessColumns(int sheetNumber, int headerRowNumber)
     {
-        for (int col = 1; col <= 30; col++)
+        for (int col = 1; col <= 32; col++)
         {
             string columnName = ExcelColumnFromNumber(col);
             string cellValue = _excelReader.ReadCell(sheetNumber, columnName, headerRowNumber);
@@ -97,6 +97,10 @@ public class ExcelDataImporter : IInitialDataSetter
         else if (cellValue == ColumnNameConstants.ADD_INFO)
         {
             _initialData.AddInfoColumn = columnName;
+        }
+        else if (cellValue == ColumnNameConstants.HenconStd)
+        {
+            _initialData.HenconStdColumn = columnName;
         }
     }
 

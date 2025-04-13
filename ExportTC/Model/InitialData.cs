@@ -30,7 +30,7 @@ namespace ExportTC.Model
         public string? SpareColumn { get; set; }
         public string? ItemCodeSupplierColumn { get; set; }
         public string? AddInfoColumn { get; set; }
-
+        public string? HenconStdColumn { get; set; }
         public string PathFiles { get; set; }
         public string SavePath { get; set; }
         public string GenericFilePath { get; set; }

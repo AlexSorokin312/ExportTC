@@ -51,7 +51,7 @@ namespace HenconExport.Model.Elemnts
         public string? AddInfo { get; set; }
         public string? ExcelFile { get; set; }
         public List<Element> Parents { get; set; } = new(); //специально введено для создания generic-файлов
-
+        public string HenconStatus { get; set; }
         public Element(string designation, string assembly)
         {
             Designation = designation;
@@ -73,6 +73,40 @@ namespace HenconExport.Model.Elemnts
             Revision = revision ?? "00";
         }
 
+        //public int GetHierarchyDepth()
+        //{
+        //    var visited = new HashSet<Element>();
+        //    return GetMaxDepth(visited);
+        //}
+
+        //private int GetMaxDepth(HashSet<Element> visited)
+        //{
+        //    if (visited.Contains(this))
+        //    {
+        //        return 100;
+        //    }
+
+        //    visited.Add(this);
+
+        //    // Если у элемента нет родителей, глубина равна 0.
+        //    if (this.Parents == null || this.Parents.Count == 0)
+        //    {
+        //        visited.Remove(this);
+        //        return 0;
+        //    }
+
+        //    int maxDepth = 0;
+        //    foreach (var parent in this.Parents)
+        //    {
+        //        int depth = parent.GetMaxDepth(visited);
+        //        if (depth > maxDepth)
+        //            maxDepth = depth;
+        //    }
+
+        //    visited.Remove(this);
+        //    return maxDepth + 1;
+        //}
+
         public int GetHierarchyDepth()
         {
             int depth = 0;
@@ -83,7 +117,7 @@ namespace HenconExport.Model.Elemnts
                 depth++;
                 current = current.Parent;
 
-                // Защита от циклических ссылок
+                //Защита от циклических ссылок
                 if (depth > 1000) throw new InvalidOperationException("Обнаружена циклическая ссылка в родительской иерархии");
             }
 

@@ -30,7 +30,7 @@ public class ExcelElementParser
                                              config.DescriptionColumn, config.QuantityColumn,
                                              config.MakeOrBuyColumn, config.RevisionColumn,
                                              config.ItemCodeSupplier, config.Costtype,
-                                             config.Spare, config.AddInfo);
+                                             config.Spare, config.AddInfo, config.HenconStd);
             if (element != null)
             {
                 elements.Add(element);
@@ -132,7 +132,8 @@ public class ExcelElementParser
                                        string itemCodeSupplierColumn,
                                        string costtypeColumn,
                                        string spareColumn,
-                                       string addInfoColumn)
+                                       string addInfoColumn,
+                                       string HenconStatys)
     {
         //string pos = excelReader.ReadCell(sheetNumber, positionColumn, row) ?? string.Empty;
         string pos =  string.Empty;
@@ -148,13 +149,17 @@ public class ExcelElementParser
         string spare = excelReader.ReadCell(sheetNumber, spareColumn, row) ?? string.Empty;
         string addInfo = excelReader.ReadCell(sheetNumber, addInfoColumn, row) ?? string.Empty;
 
+        string henconStatus = excelReader.ReadCell(sheetNumber, HenconStatys, row) ?? string.Empty;
+
         // Создание элемента с новыми полями
         var element = new Element(designation, name, pos, quantity, makeOrBuy, revision)
         {
             ItemCodeSupplier = itemCodeSupplier,
             Costtype = costtype,
             Spare = spare,
-            AddInfo = addInfo
+            AddInfo = addInfo,
+            HenconStatus = henconStatus
+
         };
 
         return element;

@@ -16,4 +16,6 @@
     public string Costtype { get; set; }
     public string Spare { get; set; }
     public string AddInfo { get; set; }
+    public string HenconStd { get; set; }
+
 }
