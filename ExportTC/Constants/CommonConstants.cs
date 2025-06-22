@@ -22,6 +22,7 @@
             {
                 { "BUY", "BUY" },
                 { "MAKE", "MAKE" },
+                { "NO_BOM", "NO_BOM" },
 
             };
 
@@ -29,7 +30,7 @@
             {
                 { "bom_make.gif", "MAKE" },
                 { "bom_buy.gif", "BUY" },
-                { "bom_nobom.gif", string.Empty },
+                { "bom_nobom.gif", "NO_BOM" },
             };
 
             ElementTypePictures = new Dictionary<string, string>

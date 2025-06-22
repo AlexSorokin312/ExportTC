@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using ExportTC.Constants;
 using ExportTC.Model;
+using ExportTC.Model.ElementParcers;
 using HenconExport;
 using HenconExport.Model.Elemnts;
 using Microsoft.Extensions.DependencyInjection;
@@ -301,10 +302,6 @@ namespace ExportTC.ViewModel
             {
                 excelWriter.WriteCell(worksheet, row, 6, element.Name);
             }
-            else
-            {
-                excelWriter.WriteCell(worksheet, row, 6, element.Designation);
-            }
             excelWriter.WriteCell(worksheet, row, 10, element.Revision);
             excelWriter.WriteCell(worksheet, row, 14, element.Designation);
 
@@ -315,9 +312,15 @@ namespace ExportTC.ViewModel
                 excelWriter.WriteCell(worksheet, row, 34, formattedCosttype);
             }
 
+            if (string.IsNullOrEmpty(element.MakeOrBuy))
+            {
+                HtmlReader.statucElements.TryGetValue(element.Designation, out string result);
+                element.MakeOrBuy = result;
+            }
+
             excelWriter.WriteCell(worksheet, row, 35, element.MakeOrBuy?.ToUpper());
 
-            if (!string.IsNullOrEmpty(element.HenconStatus))
+            if (element.HenconStatus is string status && !string.IsNullOrEmpty(status) && element.HenconStatus != "System.Object[,]")
             {
                 string output = char.ToUpper(element.HenconStatus[0]) + element.HenconStatus.Substring(1).ToLower();
                 if (output.Contains("hencon", StringComparison.OrdinalIgnoreCase))
@@ -393,18 +396,11 @@ namespace ExportTC.ViewModel
                     if (!designationsWithFiles.Contains(cachedRow))
                     {
 
-                        if (element.ExcelFile.Contains(".xlsm"))
-                        {
-                            excelWriter.WriteCell(worksheet, row, 72, element.ExcelFile);
-                            excelWriter.WriteCell(worksheet, row, 73, Path.GetFileNameWithoutExtension(element.ExcelFile));
-                            designationsWithFiles.Add(cachedRow);
-                        }
-                        else if (element.ExcelFile.Contains(".xlsx"))
+                        if (element.ExcelFile.Contains(".xlsm") || element.ExcelFile.Contains(".xlsx"))
                         {
                             excelWriter.WriteCell(worksheet, row, 21, element.ExcelFile);
                             excelWriter.WriteCell(worksheet, row, 44, Path.GetFileNameWithoutExtension(element.ExcelFile));
                             designationsWithFiles.Add(cachedRow);
-
                         }
                         else
                         {

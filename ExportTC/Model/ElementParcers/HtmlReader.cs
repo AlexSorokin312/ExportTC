@@ -9,6 +9,9 @@ namespace ExportTC.Model.ElementParcers
     {
         private HtmlAgilityPack.HtmlDocument? _htmlDocument;
 
+
+        public static Dictionary<string, string> statucElements = new();
+
         public void FillDataFromHtml(string htmlPath, List<Element> treeElements)
         {
             // Создание словаря для быстрого доступа
@@ -122,13 +125,23 @@ namespace ExportTC.Model.ElementParcers
             element.FileName = FileNameExtactor.ExtractHrefValueFromColumn(cols[0].InnerHtml, htmlPath);
             element.ProductStatus = ExtractStatusFromColumn(cols[0].InnerHtml);
             element.Designation = designation;
+            statucElements.TryAdd(element.Designation, element.MakeOrBuy);
         }
 
         private static string ExtractStatusFromColumn(string innerHtml)
             => CommonConstants.GetStatus(innerHtml);
 
         private string ExtractMakeOrBuyFromColumn(string innerHtml)
-            => CommonConstants.GetMakeBuyReplacmentImage(innerHtml);
+        {
+            if (innerHtml.Contains("make", StringComparison.OrdinalIgnoreCase))
+                return "MAKE";
+            if (innerHtml.Contains("buy", StringComparison.OrdinalIgnoreCase))
+                return "BUY";
+            if (innerHtml.Contains("bom_nobom", StringComparison.OrdinalIgnoreCase))
+                return "NO_BOM";
+
+            return CommonConstants.GetMakeBuyReplacmentImage(innerHtml);
+        }
 
         private string ExtractImageTypeFromColumn(string innerHtml)
             => CommonConstants.GetElementTypePicture(innerHtml);

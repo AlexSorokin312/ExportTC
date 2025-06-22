@@ -216,7 +216,7 @@ namespace ExportTC.Model
                 {
 
                     element.Costtype = excelElement.Costtype;
-                    element.MakeOrBuy = excelElement.MakeOrBuy?.ToUpper();
+                    element.MakeOrBuy = excelElement.MakeOrBuy;
                     element.Spare = excelElement.Spare;
                     element.ItemCodeSupplier = excelElement.ItemCodeSupplier;
                     element.AddInfo = excelElement.AddInfo;
@@ -559,11 +559,11 @@ namespace ExportTC.Model
                     {
                         var fileName = Path.GetFileName(matchingFile);
 
-                        if (matchingFile.Contains("EA"))
+                        if (matchingFile.Contains("EA", StringComparison.OrdinalIgnoreCase))
                             element.EADrawingFile = fileName;
                         else if (matchingFile.Contains("RE"))
                             element.REDrawingFile = fileName;
-                        else if (matchingFile.Contains("EM"))
+                        else if (matchingFile.Contains("EM", StringComparison.OrdinalIgnoreCase))
                             element.EMDrawingFile = fileName;
                         else
                             element.DrawingFile = fileName;

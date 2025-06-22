@@ -37,7 +37,7 @@ public class ExcelElementParser
             }
         }
 
-        //Проверка пизиций
+        //Проверка позиций
         int quntityColumnNubmer = ColumnLetterToIndex(config.QuantityColumn);
         int descriptionColumnNumber = ColumnLetterToIndex(config.DescriptionColumn);
         int levels = descriptionColumnNumber - quntityColumnNubmer;
