@@ -67,4 +67,29 @@ public class RecordManager
 
         return false; // Если не нашли, возвращаем false
     }
+
+    // Новый метод: ищем **во всех** файлах .txt, в имени которых есть "_drawings"
+    public bool IsRecordExistsInDrawingFiles(string record, string revision)
+    {
+        if (string.IsNullOrWhiteSpace(record)
+            || string.IsNullOrWhiteSpace(revision))
+            return false;
+
+        // Берём ВСЕ .txt в текущей папке
+        var allTxt = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.txt");
+
+        foreach (var fp in allTxt)
+        {
+            // Фильтруем только те, у которых в имени есть "_drawings"
+            var name = Path.GetFileName(fp);
+            if (name == null
+                || !name.Contains("_drawings", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (IsRecordExistsInFile(fp, record, revision))
+                return true;
+        }
+
+        return false;
+    }
 }

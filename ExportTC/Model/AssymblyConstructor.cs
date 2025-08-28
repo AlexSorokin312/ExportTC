@@ -70,16 +70,10 @@ namespace ExportTC.Model
             htmlElements = RemoveDuplicatesByDesignationAndParentDesignation(htmlElements);
             RootString = htmlElements.FirstOrDefault().Designation;
 
-            var cvv = htmlElements.Where(x => x.Parent.Designation == x.Designation);
-            if (cvv.Any())
-            {
-
-            }
             LoggerDebug.LogInfo("Слияние данных из Excel и HTML.");
 
             LoggerDebug.LogInfo("Добавление дополнительных параметров.");
             MergeExcelElementsWithHtmlData(excelElements, htmlElements);
-
 
             MakeAdditionalParamters(htmlElements, excelElements);
             LoggerDebug.LogInfo("Заполнение имен файлов.");
@@ -88,8 +82,6 @@ namespace ExportTC.Model
             LoggerDebug.LogInfo("Связывание документов с деталями.");
 
             LinkDocumentsToDetails(htmlElements);
-
-
 
             LoggerDebug.LogInfo("Поиск файлов для элементов.");
             FindFiles(htmlElements, initialData);
@@ -250,7 +242,6 @@ namespace ExportTC.Model
             }
 
             htmlElements.Skip(1).ToList().ForEach(x => x.Quantity = "0");
-
             htmlElements.FirstOrDefault().Children.ForEach(x => x.Quantity = "1");
 
             //Проверка по кешу всех выгрзок
@@ -291,7 +282,6 @@ namespace ExportTC.Model
                 catch (Exception ex)
                 {
                 }
-
             }
 
             //Проверка по внутренним сборкам
@@ -560,13 +550,15 @@ namespace ExportTC.Model
                         var fileName = Path.GetFileName(matchingFile);
 
                         if (matchingFile.Contains("EA", StringComparison.OrdinalIgnoreCase))
-                            element.EADrawingFile = fileName;
+                            element.EADrawingFile += fileName + ", ";
                         else if (matchingFile.Contains("RE"))
-                            element.REDrawingFile = fileName;
+                            element.REDrawingFile += fileName + ", ";
                         else if (matchingFile.Contains("EM", StringComparison.OrdinalIgnoreCase))
-                            element.EMDrawingFile = fileName;
+                        {
+                            element.EMDrawingFile += fileName + ", ";
+                        }
                         else
-                            element.DrawingFile = fileName;
+                            element.DrawingFile += fileName + ", ";
                     }
                 }
             });
@@ -693,8 +685,6 @@ namespace ExportTC.Model
             Func<Element, string> getFile,
             Action<Element, string> setFile)
         {
-            var el = elements.Where(x=>x.Designation == "440000924");
-
             // Выбираем элементы с нужным DrawingIcon
             var generics = elements
                 .Where(x => x.DrawingIcon == ElementConstants.GENERIC ||
@@ -730,7 +720,6 @@ namespace ExportTC.Model
                     }
                 }
             }
-
         }
 
 

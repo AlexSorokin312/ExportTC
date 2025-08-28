@@ -171,13 +171,13 @@ namespace ExportTC.ViewModel
 
             string savePath = _initialData.SavePath;
             if (File.Exists(Path.Combine(savePath, "Hencon_Impl.xlsm")))
-            try
-            {
-                File.Delete(savePath);
-            }
-            catch
-            {
-            }
+                try
+                {
+                    File.Delete(savePath);
+                }
+                catch
+                {
+                }
             string outputPath = Path.Combine(savePath, CommonConstants.DefaultResultFileName);
             try
             {
@@ -199,13 +199,24 @@ namespace ExportTC.ViewModel
             try
             {
                 using (var excelWriter = new ExcelWriter(outputPath))
-                {
+                {    
+                    // … внутри SaveToExcelFileAsync, после того как закончился ваш цикл записи строк:
                     var worksheet = excelWriter.GetWorksheet(2);
+                    int firstDataRow = 3; // у вас данные начинаются с 3-ей строки
+                    int lastRow = worksheet.Dimension.End.Row;
+                    int lastCol = worksheet.Dimension.End.Column;
+
+                    worksheet.Cells[firstDataRow, 1, lastRow, lastCol].Clear();
+
+
                     int row = 3;
-                    var elements = _assembly.Elements;
+                    var elements = _assembly.Elements.ToList();
+
                     var result = CheckIncorrectFiles(elements.ToList());
                     if (!result)
                         return;
+
+                    SplitDrawings(elements);
 
                     //_assembly.Sort(elements);
                     int totalElements = elements.Count;
@@ -216,9 +227,9 @@ namespace ExportTC.ViewModel
 
                     sortedElements = Sort(sortedElements.ToList());
 
-
                     for (int i = 0; i < totalElements; i++)
                     {
+
                         if (sortedElements[i].Parent != null && sortedElements[i].Parent.Designation.Contains("General"))
                         {
                             continue;
@@ -230,6 +241,37 @@ namespace ExportTC.ViewModel
                         // Обновляем прогресс
                         ProgressValue = (i + 1) * 100.0 / totalElements;
                     }
+
+
+
+
+
+
+                    // HashSet для обнаружения уже встреченных комбинаций ячеек
+                    var seenRows = new HashSet<string>();
+
+                    // Идём с конца вверх, чтобы удалять без смещения индексов ещё не обработанных строк
+                    for (int i = lastRow; i >= firstDataRow; i--)
+                    {
+                        // Собираем значения всех столбцов в одну строку-ключ
+                        var keySb = new StringBuilder();
+                        for (int col = 1; col <= lastCol; col++)
+                        {
+                            keySb.Append(worksheet.Cells[i, col].Text).Append("|");
+                        }
+                        string key = keySb.ToString();
+
+                        if (seenRows.Contains(key))
+                        {
+                            // Уже была такая строка — удаляем дубликат
+                            worksheet.DeleteRow(i);
+                        }
+                        else
+                        {
+                            seenRows.Add(key);
+                        }
+                    }
+
                     excelWriter.Save();
                 }
             }
@@ -344,16 +386,14 @@ namespace ExportTC.ViewModel
 
             if (!_recordManager.IsRecordExists(RootElements.FirstOrDefault().Designation, element.Designation, element.Revision))
             {
-
                 excelWriter.WriteCell(worksheet, row, 26, element.PartFile);
                 excelWriter.WriteCell(worksheet, row, 27, element.AssemblyFile);
 
                 if (element.DrawingFile != null && !element.DrawingFile.Contains(".dwg"))
+                {
                     excelWriter.WriteCell(worksheet, row, 28, element.DrawingFile);
-
-                excelWriter.WriteCell(worksheet, row, 29, element.EMDrawingFile);
-                excelWriter.WriteCell(worksheet, row, 30, element.EADrawingFile);
-                excelWriter.WriteCell(worksheet, row, 31, element.REDrawingFile);
+                    excelWriter.WriteCell(worksheet, row, 29, Path.GetFileNameWithoutExtension(element.DrawingFile));
+                }
 
                 if (element.DocFile != null)
                 {
@@ -603,8 +643,6 @@ namespace ExportTC.ViewModel
         {
             List<Element> flatList = new List<Element>();
 
-            flatList.Add(element);
-
             foreach (var child in element.Children)
             {
                 flatList.AddRange(FlattenElements(child));
@@ -627,11 +665,11 @@ namespace ExportTC.ViewModel
             }
 
             string message = messageBuilder.ToString();
-            
+
             // Запись в файл, если есть предупреждения
             string filePath = "warnings_log.txt"; // Имя файла (можно указать путь)
             string timestamp = $"Выгрузка сборки {elements.FirstOrDefault().Designation} от {DateTime.Now:dd.MM.yyyy HH:mm:ss}";
-            
+
             StringBuilder logBuilder = new StringBuilder();
             logBuilder.AppendLine(); // Добавляем пустую строку сверху
             logBuilder.AppendLine(timestamp);
@@ -653,6 +691,109 @@ namespace ExportTC.ViewModel
                 return false;
 
             return true;
+        }
+        // вспомогательный метод для клонирования нужных полей
+
+        void SplitDrawings(List<Element> elements)
+        {
+            var seenPerParent = new Dictionary<string, HashSet<string>>();
+
+            for (int i = 0; i < elements.Count; i++)
+            {
+                var elem = elements[i];
+                if (elem.Quantity == "0")
+                {
+                    elem.DrawingFile = null;
+                    elem.EADrawingFile = null;
+                    elem.REDrawingFile = null;
+                    elem.EMDrawingFile = null;
+                    continue;
+                }
+
+                var parentKey = elem.Parent?.Designation ?? "<no-parent>";
+
+                if (!seenPerParent.ContainsKey(parentKey))
+                    seenPerParent[parentKey] = new HashSet<string>();
+
+                var clones = new List<Element>();
+
+                // --- 1) Разбор поля DrawingFile ---
+                if (!string.IsNullOrWhiteSpace(elem.DrawingFile))
+                {
+                    // разбиваем, убираем пустые и висячие запятые
+                    var parts = elem.DrawingFile!
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim().TrimEnd(','))
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .ToList();
+
+                    if (parts.Count > 0)
+                    {
+                        // первое — оставляем в оригинальном элементе
+                        elem.DrawingFile = parts[0];
+
+                        // остальные — обрабатываем как «списочные» поля
+                        foreach (var drawing in parts.Skip(1))
+                        {
+                            if (seenPerParent[parentKey].Add(drawing))
+                            {
+                                clones.Add(CloneForDrawing(elem, drawing));
+                            }
+                        }
+                    }
+                }
+
+                // --- 2) EA / EM / RE (каждое — может быть списком через запятую) ---
+                void ProcessField(string rawField)
+                {
+                    if (string.IsNullOrWhiteSpace(rawField))
+                        return;
+
+                    var parts = rawField
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim().TrimEnd(','))
+                        .Where(s => !string.IsNullOrEmpty(s));
+
+                    foreach (var drawing in parts)
+                    {
+                        if (seenPerParent[parentKey].Add(drawing))
+                        {
+                            clones.Add(CloneForDrawing(elem, drawing));
+                        }
+                    }
+                }
+
+                ProcessField(elem.EADrawingFile!);
+                ProcessField(elem.EMDrawingFile!);
+                ProcessField(elem.REDrawingFile!);
+
+                // --- 3) Вставка клонов сразу после elem ---
+                if (clones.Count > 0)
+                {
+                    elements.InsertRange(i + 1, clones);
+                    i += clones.Count;
+                }
+            }
+        }
+
+        private Element CloneForDrawing(Element original, string drawing)
+        {
+            return new Element
+            {
+                Pos = original.Pos,
+
+                Designation = original.Designation,
+                Quantity = original.Quantity,
+                MakeOrBuy = original.MakeOrBuy,
+                Parent = original.Parent,
+                DrawingFile = drawing,
+                TreeType = original.TreeType,
+                TCType = original.TCType,
+                AddInfo = original.AddInfo,
+                Name = original.Name,
+                Revision = original.Revision,
+                ProductStatus = original.ProductStatus,
+            };
         }
     }
 }
