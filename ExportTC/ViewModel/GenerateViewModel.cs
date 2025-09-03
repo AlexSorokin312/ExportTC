@@ -242,11 +242,6 @@ namespace ExportTC.ViewModel
                         ProgressValue = (i + 1) * 100.0 / totalElements;
                     }
 
-
-
-
-
-
                     // HashSet для обнаружения уже встреченных комбинаций ячеек
                     var seenRows = new HashSet<string>();
 

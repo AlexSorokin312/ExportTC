@@ -2,7 +2,9 @@
 using CommunityToolkit.Mvvm.Input;
 using ExportTC.Model;
 using ExportTC.Services;
+using HenconExport.Model.Elemnts;
 using Microsoft.Extensions.DependencyInjection;
+using MigrateData.Adapter;
 using System.Windows.Input;
 
 namespace ExportTC.ViewModel
@@ -37,6 +39,8 @@ namespace ExportTC.ViewModel
 
         public PathViewModel()
         {
+
+
             try
             {
                 _initialData = new Lazy<InitialData>(() =>
@@ -78,7 +82,7 @@ namespace ExportTC.ViewModel
                     throw new ArgumentNullException(nameof(value), ErrorMessages.InvalidDirectoryPath);
 
                 DirectoryPath = value;
-                ExcelFilePath = _fileSearchService.Value.FindFirstExcelFile(value);
+                ExcelFilePath = _fileSearchService.Value.FindFirstExcelFileNotHencon(value);
                 HtmFilePath = _fileSearchService.Value.FindHtmlFile(value);
                 SaveFilePath = value;
                 _initialData.Value.BaseDirectory = value;

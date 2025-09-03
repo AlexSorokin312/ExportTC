@@ -2,6 +2,7 @@
 using ExportTC.Model.ElementParcers;
 using ExportTC.Model.Factories;
 using HenconExport.Model.Elemnts;
+using MigrateData.Adapter;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -41,41 +42,54 @@ namespace ExportTC.Model
 
         public Assembly GetAssembly(InitialData initialData)
         {
-            if (initialData == null)
-            {
-                LoggerDebug.LogError("InitialData передан как null.");
-                throw new ArgumentNullException(nameof(initialData));
-            }
+            //if (initialData == null)
+            //{
+            //    LoggerDebug.LogError("InitialData передан как null.");
+            //    throw new ArgumentNullException(nameof(initialData));
+            //}
 
-            LoggerDebug.LogInfo("Получение данных из Excel.");
-            var excelElements = GetDataFromExcel(initialData);
+            //LoggerDebug.LogInfo("Получение данных из Excel.");
+            List<Element> htmlElements = GetDataFromExcel(initialData);
+            ExtractDetailChildren(htmlElements);
+            //LoggerDebug.LogInfo("Получение данных из HTML.");
+            //var htmlElements = GetDataFromHtml(initialData);
 
-            LoggerDebug.LogInfo("Получение данных из HTML.");
-            var htmlElements = GetDataFromHtml(initialData);
+            //LoggerDebug.LogInfo("Фильтрация элементов HTML на основе регулярного выражения.");
+            //RootAssembly.value = excelElements.FirstOrDefault().Designation;
 
-            LoggerDebug.LogInfo("Фильтрация элементов HTML на основе регулярного выражения.");
-            RootAssembly.value = excelElements.FirstOrDefault().Designation;
+            //var root = htmlElements.FirstOrDefault();
+            //var detailsINroot = root.Children.Where(x => x.DrawingIcon == ElementConstants.DETAIL).ToList();
+            //foreach (var detail in detailsINroot)
+            //{
+            //    root.Children.Remove(detail);
+            //}
+
+            //htmlElements = htmlElements
+            //   .Where(e => !Regex.IsMatch(e.Designation, @"\b[А-ЯA-Z]\d+\b", RegexOptions.IgnoreCase))
+            //   .ToList();
+
+            //htmlElements = RemoveDuplicatesByDesignationAndParentDesignation(htmlElements);
+
+            //LoggerDebug.LogInfo("Слияние данных из Excel и HTML.");
+
+            //LoggerDebug.LogInfo("Добавление дополнительных параметров.");
+            //MergeExcelElementsWithHtmlData(excelElements, htmlElements);
+
+
+            htmlElements.FirstOrDefault(x => x.Root == true);
+
+            RootString = htmlElements.FirstOrDefault(x => x.Root).Designation;
+
+            RootAssembly.value = htmlElements.FirstOrDefault(x => x.Root).Designation;
 
             var root = htmlElements.FirstOrDefault();
-            var detailsINroot = root.Children.Where(x => x.DrawingIcon == ElementConstants.DETAIL).ToList();
-            foreach (var detail in detailsINroot)
-            {
-                root.Children.Remove(detail);
-            }
 
-            htmlElements = htmlElements
-               .Where(e => !Regex.IsMatch(e.Designation, @"\b[А-ЯA-Z]\d+\b", RegexOptions.IgnoreCase))
-               .ToList();
-
+            var c = htmlElements.Where(x=>x.Designation == "447005533");
             htmlElements = RemoveDuplicatesByDesignationAndParentDesignation(htmlElements);
-            RootString = htmlElements.FirstOrDefault().Designation;
 
-            LoggerDebug.LogInfo("Слияние данных из Excel и HTML.");
+            htmlElements.Insert(0, root);
 
-            LoggerDebug.LogInfo("Добавление дополнительных параметров.");
-            MergeExcelElementsWithHtmlData(excelElements, htmlElements);
-
-            MakeAdditionalParamters(htmlElements, excelElements);
+            //MakeAdditionalParamters(htmlElements, excelElements);
             LoggerDebug.LogInfo("Заполнение имен файлов.");
             FillFileNames(htmlElements, initialData.BaseDirectory);
 
@@ -85,8 +99,8 @@ namespace ExportTC.Model
 
             LoggerDebug.LogInfo("Поиск файлов для элементов.");
             FindFiles(htmlElements, initialData);
-            MatchQuantity1(htmlElements);
 
+            MatchQuantity(htmlElements);
             SingleGenerics(htmlElements);
 
             RemoveDrawingDuplicates(htmlElements);
@@ -160,7 +174,14 @@ namespace ExportTC.Model
 
             var config = CreateExcelElementConfig(initialData, excelPath);
 
-            return _excelElementParser.GetExcelElements(config);
+            var reader = new NewDataReader();
+            var items = reader.ReadAllColumns(excelPath);
+            var roots = reader.BuildTreeFromLongPaths(items);
+
+            List<Element> elementRoots = reader.ConvertTreeToElements(roots);
+            var elements = reader.FlattenElements(elementRoots);
+
+            return elements;
         }
 
 
@@ -225,7 +246,7 @@ namespace ExportTC.Model
         List<string> quantity = new List<string>();
 
         ////На случай если нужно будет читать данные о количестве из excel
-        private void MatchQuantity1(List<Element> htmlElements)
+        private void MatchQuantity(List<Element> htmlElements)
         {
             var generics = htmlElements.Where(x => x.DrawingIcon == ElementConstants.GENERIC || x.DrawingIcon == ElementConstants.BOM);
             string row = string.Empty;
@@ -235,13 +256,11 @@ namespace ExportTC.Model
 
                 if (!_numberes.ContainsKey(row))
                 {
-
                     _numberes.Add(row, generi.Quantity);
-
                 }
             }
 
-            htmlElements.Skip(1).ToList().ForEach(x => x.Quantity = "0");
+            //htmlElements.Skip(1).ToList().ForEach(x => x.Quantity = "0");
             htmlElements.FirstOrDefault().Children.ForEach(x => x.Quantity = "1");
 
             //Проверка по кешу всех выгрзок
@@ -271,7 +290,7 @@ namespace ExportTC.Model
                     else
                     {
                         element.Quantity = "1";
-                        if (element.DrawingIcon == ElementConstants.GENERIC)
+                        if (element.DrawingIcon == ElementConstants.GENERIC || element.DrawingIcon == ElementConstants.BOM)
                         {
                             row = String.Format("{0}-{1}", element.Parent.Designation, element.Designation);
                             var first = _numberes.FirstOrDefault(x => x.Key == row);
@@ -351,7 +370,7 @@ namespace ExportTC.Model
 
                 var parents = elements
                       .Where(parent => parent.Children?.Any(child => child.Designation == file.Designation
-                      &&  child.DrawingIcon != ElementConstants.DETAIL
+                      && child.DrawingIcon != ElementConstants.DETAIL
                       && child.DrawingIcon != ElementConstants.ASSEMBLY) ?? false)
                       .ToList();
 
@@ -384,14 +403,14 @@ namespace ExportTC.Model
 
             foreach (var parent in parents)
             {
-                if (parent.DrawingIcon != ElementConstants.ASSEMBLY && parent.DrawingIcon != ElementConstants.DETAIL && parent.DrawingIcon != ElementConstants.GENERIC)
+                if (parent.DrawingIcon != ElementConstants.ASSEMBLY && parent.DrawingIcon != ElementConstants.DETAIL && parent.DrawingIcon != ElementConstants.BOM)
                 {
                     var fileName1 = parent.FileName;
                     toRemove.Add(child);
                     SetFileName(fileName1, parent);
                     WriteLog(child);
                     parent.Children?.Remove(child);
-                    parent.Designation = parent.Parent.Designation;
+                    parent.Designation = parent?.Parent?.Designation;
                     parent.Parent.Parent.Children.Add(parent);
                     continue;
                 }
@@ -535,6 +554,19 @@ namespace ExportTC.Model
                 File.AppendAllText(fileNameSave, lineToAdd + Environment.NewLine);
             }
         }
+
+        private void WriteLog(string message)
+        {
+            // Считываем все строки из файла (если файл существует)
+            string[] lines = File.Exists(fileNameSave) ? File.ReadAllLines(fileNameSave) : new string[0];
+
+            // Проверяем, есть ли уже такая строка
+            if (!lines.Contains(message))
+            {
+                // Если нет, добавляем строку с переносом строки
+                File.AppendAllText(fileNameSave, message + Environment.NewLine);
+            }
+        }
         private void FindFiles(List<Element> elements, InitialData initialData)
         {
             var baseDirectory = initialData.BaseDirectory;
@@ -641,7 +673,8 @@ namespace ExportTC.Model
 
         public void SingleGenerics(List<Element> elements)
         {
-            var groups = elements.GroupBy(e => new { e.Designation, ParentDesignation = e.Parent.Designation });  //Группируем элементы по их имени родителя и имени
+
+            var groups = elements.GroupBy(e => new { e.Designation, ParentDesignation = e.Parent?.Designation });  //Группируем элементы по их имени родителя и имени
 
             foreach (var generic in groups)
             {
@@ -650,11 +683,11 @@ namespace ExportTC.Model
                     var noGeneric = generic.FirstOrDefault();
                     var noDetail = generic.LastOrDefault();
 
-                    var parentEqual = noGeneric.Parents.Where(x=>x.Designation == noGeneric.Designation); //Случай, когда один из бомов совпадает по обозначению с родителем и этот бом не единственный
+                    var parentEqual = noGeneric.Parents.Where(x => x.Designation == noGeneric.Designation); //Случай, когда один из бомов совпадает по обозначению с родителем и этот бом не единственный
                     if (parentEqual.Any())
                     {
                         return;
-                    }   
+                    }
 
                     noGeneric.PNG = noDetail.PNG;
                     noGeneric.PDFFile = noDetail.PDFFile;
@@ -721,9 +754,6 @@ namespace ExportTC.Model
                 }
             }
         }
-
-
-
 
         private void SetFileName(string fileName, Element child)
         {
@@ -803,8 +833,6 @@ namespace ExportTC.Model
             else if (fileName.Contains(".#PA", comparisonType: StringComparison.OrdinalIgnoreCase))
                 child.Multy = fileName;
 
-
-
             else if (fileName.Contains("doc"))
             {
                 if (child.FileName.Contains("docx"))
@@ -812,6 +840,85 @@ namespace ExportTC.Model
                 else
                     child.DocFile = fileName;
             }
+        }
+
+        /// <summary>
+        /// Извлекает из списка elements те элементы, у которых DrawingIcon == ElementConstants.DETAIL
+        /// и у их Parent.DrawingIcon == ElementConstants.DETAIL.
+        /// Удаляет эти элементы из исходного списка и отсоединяет их от родителя.
+        /// Возвращает список извлечённых элементов.
+        /// </summary>
+        public List<Element> ExtractDetailChildren(List<Element> elements)
+        {
+            if (elements == null) throw new ArgumentNullException(nameof(elements));
+
+            // локальные функции для сравнения
+            bool IsEqualIgnoreCase(string a, string b) =>
+                !string.IsNullOrEmpty(a) && !string.IsNullOrEmpty(b) && string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+            bool IsDetail(string s) => !string.IsNullOrEmpty(s) && string.Equals(s, ElementConstants.DETAIL, StringComparison.OrdinalIgnoreCase);
+
+            bool IsGenericOrBom(string s)
+            {
+                if (string.IsNullOrEmpty(s)) return false;
+                // Проверяем на несколько возможных значений: BOM или GENERIC.
+                // Если у вас другое имя для "Generic" в ElementConstants — добавьте сюда.
+                return string.Equals(s, ElementConstants.BOM, StringComparison.OrdinalIgnoreCase)
+                       || string.Equals(s, "Generic", StringComparison.OrdinalIgnoreCase)
+                       || string.Equals(s, "GENERIC", StringComparison.OrdinalIgnoreCase)
+                       || string.Equals(s, ElementConstants.GENERIC, StringComparison.OrdinalIgnoreCase); // на случай, если константа есть
+            }
+
+            // 1) Найдём элементы, которые нужно извлечь (detail -> parent detail)
+            var toExtract = elements
+                .Where(e => e != null && IsDetail(e.DrawingIcon)
+                            && e.Parent != null && IsDetail(e.Parent.DrawingIcon))
+                .ToList();
+
+            // 2) Найдём случаи detail -> parent (generic or bom) — НЕ удаляем, только возвращаем
+            var detailInGenericOrBom = elements
+                .Where(e => e != null && IsDetail(e.DrawingIcon)
+                            && e.Parent != null && IsGenericOrBom(e.Parent.DrawingIcon))
+                .ToList();
+
+            // Логирование найденных случаев
+            if (toExtract.Count > 0)
+            {
+                toExtract.ForEach(x => WriteLog($"Вхождение детали в деталь: {x.Designation} входит в {x.Parent?.Designation}"));
+            }
+
+            if (detailInGenericOrBom.Count > 0)
+            {
+                detailInGenericOrBom.ForEach(x => WriteLog($"Деталь под Generic/BOM: {x.Designation} (parent {x.Parent?.Designation}, parent Icon = {x.Parent?.DrawingIcon})"));
+            }
+
+            if (toExtract.Count == 0)
+                return new List<Element>();
+
+            foreach (Element e in toExtract)
+            {
+                foreach (var child in e.Children)
+                {
+                    elements.Remove(child);
+                }
+            }
+
+            // 3) Удалим их из исходного списка (по ссылкам)
+            var set = new HashSet<Element>(toExtract);
+            elements.RemoveAll(e => set.Contains(e));
+
+            // 4) Отсоединим их от родителей (если нужно)
+            foreach (var child in toExtract)
+            {
+                var parent = child.Parent;
+                if (parent != null && parent.Children != null)
+                {
+                    parent.Children.RemoveAll(c => ReferenceEquals(c, child));
+                }
+                child.Parent = null;
+            }
+
+            return toExtract;
         }
     }
 }

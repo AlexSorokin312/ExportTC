@@ -28,12 +28,6 @@
                 </StackPanel>
             </Button>
 
-            <Button Height="35" Style="{StaticResource MenuButton}" Grid.Row="1" HorizontalAlignment="Stretch" Click="NavogateToExcelButton">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Данные в Excel"/>
-                </StackPanel>
-            </Button>
-
             <Button Height="35" Style="{StaticResource MenuButton}" Grid.Row="2" HorizontalAlignment="Stretch" Click="NavigateToGeneratePanel">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Формирование файла"/>
