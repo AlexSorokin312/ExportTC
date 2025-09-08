@@ -286,12 +286,9 @@ namespace MigrateData.Adapter
             return node;
         }
 
-        public List<Element> ConvertTreeToElements(IEnumerable<NewDataItem> roots)
+       public List<Element> ConvertTreeToElements(IEnumerable<NewDataItem> roots)
         {
             if (roots == null) throw new ArgumentNullException(nameof(roots));
-
-            // Словарь по ссылкам: каждый NewDataItem -> соответствующий Element
-            var map = new Dictionary<NewDataItem, Element>(new ReferenceEqualityComparer<NewDataItem>());
 
             var resultRoots = new List<Element>();
 
@@ -299,11 +296,13 @@ namespace MigrateData.Adapter
             foreach (var r in roots)
             {
                 if (r == null) continue;
+
                 // позиция корня: "001", "002", ...
                 var rootPos = rootIndex.ToString("000");
-                var elRoot = ConvertNodeRecursive(r, null, map, rootPos);
+                var elRoot = ConvertNodeRecursive(r, null, rootPos); // без map
                 if (elRoot != null)
                     resultRoots.Add(elRoot);
+
                 rootIndex++;
             }
 
@@ -358,92 +357,59 @@ namespace MigrateData.Adapter
         /// Рекурсивная конвертация узла; pos — уже вычисленная позиция для текущего узла.
         /// Не перезаписывает Pos у уже созданного Element (если узел встречается повторно, первая позиция сохраняется).
         /// </summary>
-        private Element ConvertNodeRecursive(NewDataItem node, Element parent, Dictionary<NewDataItem, Element> map, string pos)
+        private Element ConvertNodeRecursive(NewDataItem node, Element parent, string pos)
         {
             if (node == null) return null;
 
-            // Если уже конвертировали эту ссылку — вернём существующий элемент.
-            // Не перезаписываем Pos у уже созданного элемента.
-            if (map.TryGetValue(node, out var existing))
+            // Создаём новый Element на КАЖДОЕ вхождение узла в дереве
+            var el = new Element
             {
-                // Установим parent, если ещё не было (на случай множественных вхождений)
-                if (existing.Parent == null && parent != null)
-                {
-                    existing.Parent = parent;
-                    if (parent.Children == null) parent.Children = new List<Element>();
-                    if (!parent.Children.Contains(existing)) parent.Children.Add(existing);
+                Pos = pos,
+                Designation = node.ID,
+                Name = node.DESCRIPTION,
+                FileName = node.FILE_NAME,
+                MakeOrBuy = node.MAKE_BUY,
+                Revision = node.REVISION == " " ? "00" : node.REVISION,
+                ItemCodeSupplier = node.ITEM_CODE_SUPPLIER,
+                Costtype = node.COSTTYPE,
+                Spare = node.SPARES,
+                AddInfo = node.ADD_INFO,
+                HenconStatus = node.HENCON_STD,
+                Quantity = node.Quantity,
 
-                    existing.Parents = new List<Element>(parent.Parents ?? new List<Element>());
-                    existing.Root = existing.Parent == null;
-                }
-                return existing;
-            }
+                Parent = parent,
+                Root = parent == null,
+                Parents = parent == null
+                    ? new List<Element>()
+                    : new List<Element>(parent.Parents ?? new List<Element>()) { parent },
 
-            // Создаём новый Element и маппим поля (поля можете расширить/переопределить)
-            var el = new Element();
+                Children = new List<Element>()
+            };
 
-            // === Присвоение полей (вы можете изменить/дополнить)
-            el.Pos = pos; // установка позиции
-            el.Designation = node.ID;
-            el.Name = node.DESCRIPTION;
-            el.FileName = node.FILE_NAME;
-            el.MakeOrBuy = node.MAKE_BUY;
-            el.Revision = node.REVISION;
-            if (el.Revision == " ")
-                el.Revision = "00";
-            el.ItemCodeSupplier = node.ITEM_CODE_SUPPLIER;
-            el.Costtype = node.COSTTYPE;
-            el.Spare = node.SPARES;
-            el.AddInfo = node.ADD_INFO;
-            el.HenconStatus = node.HENCON_STD;
-            el.Quantity = node.Quantity;
-
-            if (el.Designation == "440023755")
-            {
-
-            }
-
+            // Тип/иконки
             if (node.Type == "A" || node.Type == "Assy")
             {
                 el.DrawingIcon = "Assy";
-                el.TreeType = ElementConstants.ASSEMBLY;
+                el.TreeType = ExportTC.Constants.ElementConstants.ASSEMBLY;
             }
             else if (node.Type == "P" || node.Type == "Part")
             {
                 el.TreeType = "Part";
-                el.DrawingIcon = ElementConstants.DETAIL;
+                el.DrawingIcon = ExportTC.Constants.ElementConstants.DETAIL;
             }
             else if (node.Type == "G" || node.Type == "Generic")
             {
                 el.TreeType = "BOM Item";
-                el.DrawingIcon = ElementConstants.GENERIC;
+                el.DrawingIcon = ExportTC.Constants.ElementConstants.GENERIC;
             }
 
             if (node.BOM != " " && !string.IsNullOrEmpty(node.BOM))
             {
-                el.DrawingIcon = ElementConstants.BOM;
+                el.DrawingIcon = ExportTC.Constants.ElementConstants.BOM;
                 el.TreeType = "BOM Item";
             }
 
-            // Связи
-            el.Parent = parent;
-            el.Root = parent == null;
-
-            // Parents (от корня к непосредственному родителю)
-            if (parent == null)
-                el.Parents = new List<Element>();
-            else
-            {
-                el.Parents = new List<Element>(parent.Parents ?? new List<Element>());
-                el.Parents.Add(parent);
-            }
-
-            el.Children = new List<Element>();
-
-            // Помещаем в словарь по ссылке (чтобы повторные вхождения реиспользовали этот Element)
-            map[node] = el;
-
-            // Обрабатываем детей и строим их Pos: childPos = "{pos}.{000}"
+            // Рекурсивно создаём детей — у каждого своё Pos в рамках текущего родителя
             if (node.Children != null && node.Children.Count > 0)
             {
                 for (int i = 0; i < node.Children.Count; i++)
@@ -451,18 +417,15 @@ namespace MigrateData.Adapter
                     var childNode = node.Children[i];
                     if (childNode == null) continue;
 
-                    // позиция ребенка: например, для root "001" -> дети "001.001", "001.002"
                     var childPos = $"{pos}.{(i + 1).ToString("000")}";
-
-                    var childEl = ConvertNodeRecursive(childNode, el, map, childPos);
-
-                    if (childEl != null && !el.Children.Contains(childEl))
-                        el.Children.Add(childEl);
+                    var childEl = ConvertNodeRecursive(childNode, el, childPos);
+                    if (childEl != null) el.Children.Add(childEl);
                 }
             }
 
             return el;
         }
+
 
         // Простой comparer, сравнивающий ссылки (надёжно для словаря по объектам)
         private class ReferenceEqualityComparer<T> : IEqualityComparer<T> where T : class
